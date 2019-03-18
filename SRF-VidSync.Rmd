@@ -1,0 +1,744 @@
+---
+title: "SRF VidSync 2019"
+author: "Keane Flynn"
+date: "3/18/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE, cache=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Load Libraries
+```{r}
+library(dplyr)
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(geometry)
+library(rgl)
+library(hypervolume)
+library(zoo)
+library(stringr)
+```
+
+#VidSync Data
+This section of the code is devoted to importing, analyzing, and creating correlations with 3-D Videogrammetry data collected using VidSync from the summer of 2018 on Porter Creek. This is my child and I will keep it neat.
+
+##Importing Data
+###Pre-Augmentation
+```{r}
+GolfBall_VidSync_Pre <- 
+  readr::read_csv(file = "Vidsync-data/PreAugmentation/Porter_BACI_GolfBall_30June2018_Part3.csv",
+           skip = 2,
+                    col_names = c("objects", "event", "timecode", "time", "X", "Y", "Z", "pld_error", "projection_error", "nearest_camera_distance", "screen_coordinates"),
+                    col_types = "cccdddddddd")
+
+HalfTire_VidSync_Pre <-
+  readr::read_csv(file = "Vidsync-data/PreAugmentation/Porter_BACI_HalfTire_29June2018_Part2.csv",
+           skip = 2,
+                    col_names = c("objects", "event", "timecode", "time", "X", "Y", "Z", "pld_error", "projection_error", "nearest_camera_distance", "screen_coordinates"),
+                    col_types = "cccdddddddd")
+
+RoachRun_VidSync_Pre <-
+  readr::read_csv(file = "Vidsync-data/PreAugmentation/Porter_BACI_RoachRun_29June2018_Part3.csv",
+           skip = 2,
+                    col_names = c("objects", "event", "timecode", "time", "X", "Y", "Z", "pld_error", "projection_error", "nearest_camera_distance", "screen_coordinates"),
+                    col_types = "cccdddddddd")
+
+JesusToast_VidSync_Pre <- 
+  readr::read_csv(file = "Vidsync-data/PreAugmentation/Porter_BACI_JTPool_30June2018_Part1.csv",
+           skip = 2,
+                    col_names = c("objects", "event", "timecode", "time", "X", "Y", "Z", "pld_error", "projection_error", "nearest_camera_distance", "screen_coordinates"),
+                    col_types = "cccdddddddd")
+```
+###Post-Augmentation
+```{r}
+GolfBall_VidSync_Post <-
+  readr::read_csv(file = "Vidsync-data/PostAugmentation/Porter_BACI_Golfball_6July2018_Part1.csv",
+           skip = 2,
+                    col_names = c("objects", "event", "timecode", "time", "X", "Y", "Z", "pld_error", "projection_error", "nearest_camera_distance", "screen_coordinates"),
+                    col_types = "cccdddddddd")
+
+RoachRun_VidSync_Post <-
+  readr::read_csv(file = "Vidsync-data/PostAugmentation/Porter_BACI_RoachRun_5July2018_Part1.csv",
+           skip = 2,
+                    col_names = c("objects", "event", "timecode", "time", "X", "Y", "Z", "pld_error", "projection_error", "nearest_camera_distance", "screen_coordinates"),
+                    col_types = "cccdddddddd")
+
+HalfTire_VidSync_Post <- 
+  readr::read_csv(file = "Vidsync-data/PostAugmentation/Porter_BACI_HalfTire_5July2018_Part3.csv",
+           skip = 2,
+                    col_names = c("objects", "event", "timecode", "time", "X", "Y", "Z", "pld_error", "projection_error", "nearest_camera_distance", "screen_coordinates"),
+                    col_types = "cccdddddddd")
+
+JesusToast_VidSync_Post <-
+  readr::read_csv(file = "Vidsync-data/PostAugmentation/Porter_BACI_JesusToast_6July2018_Part1.csv",
+           skip = 2,
+                    col_names = c("objects", "event", "timecode", "time", "X", "Y", "Z", "pld_error", "projection_error", "nearest_camera_distance", "screen_coordinates"),
+                    col_types = "cccdddddddd")
+```
+##Analyzation
+We will be analyzing functions such as NND, distance travelled per time (cm/s), distance to forage attempt (DFA), proportion of forage types, volume occupied, overlap in forage volumes, etc.
+###Nearest Neighbor Distance (NND)
+This will use the three dimensional distance formula to look at nearest neighbor at any given time during the subsample rather than the average centroid point.
+####Pre-Augmentation
+```{r}
+nnd_GolfBall_Pre <- GolfBall_VidSync_Pre %>%
+  ungroup() %>%
+  filter(grepl("^Subsample.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  arrange(time) %>%
+  group_by(time) %>%
+  mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
+  mutate(distance_travelled_Y_cm = Y - lag(Y, default = first(Y))) %>%
+  mutate(distance_travelled_Z_cm = Z - lag(Z, default = first(Z))) %>%
+  mutate(nnd = sqrt((distance_travelled_X_cm)^2
+                                        + (distance_travelled_Y_cm)^2
+                                        + (distance_travelled_Z_cm)^2)) %>%
+  group_by(time) %>%
+  filter(!nnd == 0) %>%
+  filter(nnd == min(nnd)) %>%
+  ungroup() %>%
+  group_by(index) %>%
+  summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
+  mutate(date = as.Date("2018-06-30")) %>%
+  mutate(BACI_date = as.Date("2018-06-29")) %>%
+  mutate(site = "18.3") %>%
+  mutate(event = "Before") 
+
+nnd_HalfTire_Pre <- HalfTire_VidSync_Pre %>%
+  ungroup() %>%
+  filter(grepl("^Subsample.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  arrange(time) %>%
+  group_by(time) %>%
+  mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
+  mutate(distance_travelled_Y_cm = Y - lag(Y, default = first(Y))) %>%
+  mutate(distance_travelled_Z_cm = Z - lag(Z, default = first(Z))) %>%
+  mutate(nnd = sqrt((distance_travelled_X_cm)^2
+                                        + (distance_travelled_Y_cm)^2
+                                        + (distance_travelled_Z_cm)^2)) %>%
+  group_by(time) %>%
+  filter(!nnd == 0) %>%
+  filter(nnd == min(nnd)) %>%
+  ungroup() %>%
+  group_by(index) %>%
+  summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
+  mutate(date = as.Date("2018-06-29")) %>%
+  mutate(BACI_date = as.Date("2018-06-29")) %>%
+  mutate(site = "18.8") %>%
+  mutate(event = "Before")  
+
+nnd_RoachRun_Pre <- RoachRun_VidSync_Pre %>%
+  ungroup() %>%
+  filter(grepl("^Subsample.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  arrange(time) %>%
+  group_by(time) %>%
+  mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
+  mutate(distance_travelled_Y_cm = Y - lag(Y, default = first(Y))) %>%
+  mutate(distance_travelled_Z_cm = Z - lag(Z, default = first(Z))) %>%
+  mutate(nnd = sqrt((distance_travelled_X_cm)^2
+                                        + (distance_travelled_Y_cm)^2
+                                        + (distance_travelled_Z_cm)^2)) %>%
+  group_by(time) %>%
+  filter(!nnd == 0) %>%
+  filter(nnd == min(nnd)) %>%
+  ungroup() %>%
+  group_by(index) %>%
+  summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
+  mutate(date = as.Date("2018-06-29")) %>%
+  mutate(BACI_date = as.Date("2018-06-29")) %>%
+  mutate(site = "18.5") %>%
+  mutate(event = "Before")  
+
+nnd_JesusToast_Pre <- JesusToast_VidSync_Pre %>%
+  ungroup() %>%
+  filter(grepl("^Subsample.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  arrange(time) %>%
+  group_by(time) %>%
+  mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
+  mutate(distance_travelled_Y_cm = Y - lag(Y, default = first(Y))) %>%
+  mutate(distance_travelled_Z_cm = Z - lag(Z, default = first(Z))) %>%
+  mutate(nnd = sqrt((distance_travelled_X_cm)^2
+                                        + (distance_travelled_Y_cm)^2
+                                        + (distance_travelled_Z_cm)^2)) %>%
+  group_by(time) %>%
+  filter(!nnd == 0) %>%
+  filter(nnd == min(nnd)) %>%
+  ungroup() %>%
+  group_by(index) %>%
+  summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
+  mutate(date = as.Date("2018-06-29")) %>%
+  mutate(BACI_date = as.Date("2018-06-29")) %>%
+  mutate(site = "18.5") %>%
+  mutate(event = "Before") 
+```
+####Post-Augmentation
+```{r}
+nnd_GolfBall_Post <- GolfBall_VidSync_Post %>%
+  ungroup() %>%
+  filter(grepl("^Subsample.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  arrange(time) %>%
+  group_by(time) %>%
+  mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
+  mutate(distance_travelled_Y_cm = Y - lag(Y, default = first(Y))) %>%
+  mutate(distance_travelled_Z_cm = Z - lag(Z, default = first(Z))) %>%
+  mutate(nnd = sqrt((distance_travelled_X_cm)^2
+                                        + (distance_travelled_Y_cm)^2
+                                        + (distance_travelled_Z_cm)^2)) %>%
+  group_by(time) %>%
+  filter(!nnd == 0) %>%
+  filter(nnd == min(nnd)) %>%
+  ungroup() %>%
+  group_by(index) %>%
+  summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
+  mutate(date = as.Date("2018-07-06")) %>%
+  mutate(BACI_date = as.Date("2018-07-05")) %>%
+  mutate(site = "18.3") %>%
+  mutate(event = "After") 
+nnd_GolfBall_Post
+
+nnd_HalfTire_Post <- HalfTire_VidSync_Post %>%
+  ungroup() %>%
+  filter(grepl("^Subsample.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  arrange(time) %>%
+  group_by(time) %>%
+  mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
+  mutate(distance_travelled_Y_cm = Y - lag(Y, default = first(Y))) %>%
+  mutate(distance_travelled_Z_cm = Z - lag(Z, default = first(Z))) %>%
+  mutate(nnd = sqrt((distance_travelled_X_cm)^2
+                                        + (distance_travelled_Y_cm)^2
+                                        + (distance_travelled_Z_cm)^2)) %>%
+  group_by(time) %>%
+  filter(!nnd == 0) %>%
+  filter(nnd == min(nnd)) %>%
+  ungroup() %>%
+  group_by(index) %>%
+  summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
+  mutate(date = as.Date("2018-07-05")) %>%
+  mutate(BACI_date = as.Date("2018-07-05")) %>%
+  mutate(site = "18.8") %>%
+  mutate(event = "After") 
+nnd_HalfTire_Post
+
+nnd_RoachRun_Post <- RoachRun_VidSync_Post %>%
+  ungroup() %>%
+  filter(grepl("^Subsample.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  arrange(time) %>%
+  group_by(time) %>%
+  mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
+  mutate(distance_travelled_Y_cm = Y - lag(Y, default = first(Y))) %>%
+  mutate(distance_travelled_Z_cm = Z - lag(Z, default = first(Z))) %>%
+  mutate(nnd = sqrt((distance_travelled_X_cm)^2
+                                        + (distance_travelled_Y_cm)^2
+                                        + (distance_travelled_Z_cm)^2)) %>%
+  group_by(time) %>%
+  filter(!nnd == 0) %>%
+  filter(nnd == min(nnd)) %>%
+  ungroup() %>%
+  group_by(index) %>%
+  summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
+  mutate(date = as.Date("2018-07-05")) %>%
+  mutate(BACI_date = as.Date("2018-07-05")) %>%
+  mutate(site = "18.5") %>%
+  mutate(event = "After") 
+nnd_RoachRun_Post
+
+nnd_data <- 
+  bind_rows(nnd_RoachRun_Pre, nnd_RoachRun_Post, nnd_GolfBall_Pre, nnd_GolfBall_Post, nnd_HalfTire_Pre, nnd_HalfTire_Post) %>%
+  select(date, BACI_date, event, site, index, mean_nnd, median_nnd)
+nnd_data
+```
+###Distance Travelled per Time (cm/s)
+This will use the three dimensional distance formula divided by time.
+####Pre-Augmentation
+```{r}
+GolfBall_DistPerTime_Pre <- GolfBall_VidSync_Pre %>%
+  arrange(objects, time) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
+  mutate(distance_travelled_Y_cm = Y - lag(Y, default = first(Y))) %>%
+  mutate(distance_travelled_Z_cm = Z - lag(Z, default = first(Z))) %>%
+  mutate(fish_distance_travelled_cm = sqrt((distance_travelled_X_cm)^2
+                                        + (distance_travelled_Y_cm)^2
+                                        + (distance_travelled_Z_cm)^2)) %>%
+  mutate(date = as.Date("2018-06-30")) %>%
+  mutate(BACI_date = as.Date("2018-06-29")) %>%
+  mutate(site = "18.3") %>%
+  mutate(event = "Before") %>%
+  group_by(index) %>%
+  mutate(distance_cm_per_sec = fish_distance_travelled_cm /(time - lag(time, default = first(time)))) %>%
+  filter(!distance_cm_per_sec == Inf) %>%
+  mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
+  mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
+  dplyr::select(date, BACI_date, event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  distinct() %>%
+  arrange(as.numeric(index))
+
+
+HalfTire_DistPerTime_Pre <- HalfTire_VidSync_Pre %>%
+  arrange(objects, time) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
+  mutate(distance_travelled_Y_cm = Y - lag(Y, default = first(Y))) %>%
+  mutate(distance_travelled_Z_cm = Z - lag(Z, default = first(Z))) %>%
+  mutate(fish_distance_travelled_cm = sqrt((distance_travelled_X_cm)^2
+                                        + (distance_travelled_Y_cm)^2
+                                        + (distance_travelled_Z_cm)^2)) %>%
+  mutate(date = as.Date("2018-06-29")) %>%
+  mutate(BACI_date = as.Date("2018-06-29")) %>%
+  mutate(site = "18.8") %>%
+  mutate(event = "Before") %>%
+  group_by(index) %>%
+  mutate(distance_cm_per_sec = fish_distance_travelled_cm /(time - lag(time, default = first(time)))) %>%
+  filter(!distance_cm_per_sec == Inf) %>%
+  mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
+  mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
+  dplyr::select(date, BACI_date, event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  distinct() %>%
+  arrange(as.numeric(index))
+  
+
+RoachRun_DistPerTime_Pre <- RoachRun_VidSync_Pre %>%
+  arrange(objects, time) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
+  mutate(distance_travelled_Y_cm = Y - lag(Y, default = first(Y))) %>%
+  mutate(distance_travelled_Z_cm = Z - lag(Z, default = first(Z))) %>%
+  mutate(fish_distance_travelled_cm = sqrt((distance_travelled_X_cm)^2
+                                        + (distance_travelled_Y_cm)^2
+                                        + (distance_travelled_Z_cm)^2)) %>%
+  mutate(date = as.Date("2018-06-29")) %>%
+  mutate(BACI_date = as.Date("2018-06-29")) %>%
+  mutate(site = "18.5") %>%
+  mutate(event = "Before") %>%
+  group_by(index) %>%
+  mutate(distance_cm_per_sec = fish_distance_travelled_cm /(time - lag(time, default = first(time)))) %>%
+  filter(!distance_cm_per_sec == Inf) %>%
+  mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
+  mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
+  dplyr::select(date, BACI_date, event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  distinct() %>%
+  arrange(as.numeric(index))
+```
+####Post-Augmentation
+```{r}
+GolfBall_DistPerTime_Post <- GolfBall_VidSync_Post %>%
+  arrange(objects, time) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
+  mutate(distance_travelled_Y_cm = Y - lag(Y, default = first(Y))) %>%
+  mutate(distance_travelled_Z_cm = Z - lag(Z, default = first(Z))) %>%
+  mutate(fish_distance_travelled_cm = sqrt((distance_travelled_X_cm)^2
+                                        + (distance_travelled_Y_cm)^2
+                                        + (distance_travelled_Z_cm)^2)) %>%
+  mutate(date = as.Date("2018-07-06")) %>%
+  mutate(BACI_date = as.Date("2018-07-05")) %>%
+  mutate(site = "18.3") %>%
+  mutate(event = "After") %>%
+  group_by(index) %>%
+  mutate(distance_cm_per_sec = fish_distance_travelled_cm /(time - lag(time, default = first(time)))) %>%
+  filter(!distance_cm_per_sec == Inf) %>%
+  mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
+  mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
+  dplyr::select(date, BACI_date, event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  distinct() %>%
+  arrange(as.numeric(index))
+
+
+RoachRun_DistPerTime_Post <- RoachRun_VidSync_Post %>%
+  arrange(objects, time) %>% 
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
+  mutate(distance_travelled_Y_cm = Y - lag(Y, default = first(Y))) %>%
+  mutate(distance_travelled_Z_cm = Z - lag(Z, default = first(Z))) %>%
+  mutate(fish_distance_travelled_cm = sqrt((distance_travelled_X_cm)^2
+                                        + (distance_travelled_Y_cm)^2
+                                        + (distance_travelled_Z_cm)^2)) %>%
+  mutate(date = as.Date("2018-07-05")) %>%
+  mutate(BACI_date = as.Date("2018-07-05")) %>%
+  mutate(site = "18.5") %>%
+  mutate(event = "After") %>%
+  group_by(index) %>%
+  mutate(distance_cm_per_sec = fish_distance_travelled_cm /(time - lag(time, default = first(time)))) %>%
+  filter(!distance_cm_per_sec == Inf) %>%
+  mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
+  mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
+  dplyr::select(date, BACI_date, event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  distinct() %>%
+  arrange(as.numeric(index))
+
+HalfTire_DistPerTime_Post <- HalfTire_VidSync_Post %>%
+  arrange(objects, time) %>% 
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
+  mutate(distance_travelled_Y_cm = Y - lag(Y, default = first(Y))) %>%
+  mutate(distance_travelled_Z_cm = Z - lag(Z, default = first(Z))) %>%
+  mutate(fish_distance_travelled_cm = sqrt((distance_travelled_X_cm)^2
+                                        + (distance_travelled_Y_cm)^2
+                                        + (distance_travelled_Z_cm)^2)) %>%
+  mutate(date = as.Date("2018-07-05")) %>%
+  mutate(BACI_date = as.Date("2018-07-05")) %>%
+  mutate(site = "18.8") %>%
+  mutate(event = "After") %>%
+  group_by(index) %>%
+  mutate(distance_cm_per_sec = fish_distance_travelled_cm /(time - lag(time, default = first(time)))) %>%
+  filter(!distance_cm_per_sec == Inf) %>%
+  mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
+  mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
+  dplyr::select(date, BACI_date, event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  distinct() %>%
+  arrange(as.numeric(index))
+
+MovementPerTime_Data <-
+bind_rows(RoachRun_DistPerTime_Pre, RoachRun_DistPerTime_Post, GolfBall_DistPerTime_Pre, GolfBall_DistPerTime_Post, HalfTire_DistPerTime_Pre, HalfTire_DistPerTime_Post) %>%
+  mutate(ID = 1) %>% 
+  group_by(ID) %>%
+  mutate(unique_ID = cumsum(ID)) %>%
+  select(date, BACI_date, event, site, unique_ID, subsample, index, DistPerTime_Median, DistPerTime_Mean)
+MovementPerTime_Data
+```
+###Distance to Forage Attempt (DFA)
+Finding the centroid point then looking at the average distance to each subsequent point taken in the subsample and taking the average.
+
+####Pre-Augmentation
+```{r}
+
+```
+####Post-Augmentation
+```{r}
+
+```
+###Proportion of Forage Types
+Breaking down the proportion of each type of forage event and how it changes throughout the study period.
+
+####Pre-Augmentation
+```{r}
+GolfBall_ForageDist_Pre <- GolfBall_VidSync_Pre %>%
+  filter(grepl("^Subsample.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  select(objects, event, time) %>%
+  arrange(time) %>%
+  mutate(drift_forage = if_else(grepl("^Drift_Forage", event), 1, 0)) %>%
+  mutate(search_forage = if_else(grepl("^Search_Forage", event), 1, 0)) %>%
+  mutate(benthic_forage = if_else(grepl("^Benthic_Forage", event), 1, 0)) %>%
+  mutate(other = if_else(grepl("Movement|Surface_Strike|Nip|Attack", event), 1, 0))
+GolfBall_Forage_Pre
+```
+####Post-Augmentation
+```{r}
+
+```
+###Volume Occupied
+Using Delaunay Triangulation to calculate the volume each fish is occupying during each subsample.
+
+####Pre-Augmentation
+```{r}
+GolfBall_Volume_Pre <- GolfBall_VidSync_Pre %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:13) {
+  if (i == 3) {
+    next
+  }
+  if (i == 10) {
+    next
+  }
+  GB_Pre_Filename <- paste("GB_Vol_Pre_", toString(i), sep = "")
+  GolfBall_Volume_Pre %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+
+HalfTire_Volume_Pre <- HalfTire_VidSync_Pre %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:8) {
+  HalfTire_Volume_Pre %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+
+RoachRun_Volume_Pre <- RoachRun_VidSync_Pre %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:19) {
+  if (i == 3) {
+    next
+  }
+  if (i == 7) {
+    next
+  }
+  if (i == 14) {
+    next
+  }
+  if (i == 16) {
+    next
+  }
+  RoachRun_Volume_Pre %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+```
+####Post-Augmentation
+```{r}
+GolfBall_Volume_Post <- GolfBall_VidSync_Post %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:6) {
+  GolfBall_Volume_Post %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+
+RoachRun_Volume_Post <- RoachRun_VidSync_Post %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:33) {
+  RoachRun_Volume_Post %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+
+HalfTire_Volume_Post <- HalfTire_VidSync_Post %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:48) {
+  if (i == 6) {
+    next
+  }
+  if (i == 7) {
+    next
+  }
+  if (i == 8) {
+    next
+  }
+  if (i == 14) {
+    next
+  }
+  if (i == 20) {
+    next
+  }
+  if (i == 29) {
+    next
+  }
+  if (i == 36) {
+    next
+  }
+  if (i == 40) {
+    next
+  }
+  if (i == 41) {
+    next
+  }
+  HalfTire_Volume_Post %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+
+vol_test <- RoachRun_Volume_Post %>%
+   filter(index == 1) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") 
+
+print(vol_test$vol)
+```
+###Overlap in Forage Volumes
+Using the 'Hypervolume' package to calculate overlap in occupied volumes by the fish observed in each subsample.
+
+Potential list of tools to use from this package: 
+expectation_convex
+get_volume
+get_centroid
+
+
+####Pre-Augmentation
+```{r}
+for (i in 1:13) {
+  if (i == 3) {
+      next
+    }
+  if (i == 10) {
+      next
+    }
+    GolfBall_Volume_Pre %>%
+      filter(index == i) %>%
+      select(X, Y, Z) %>%
+      expectation_convex(check.memory = FALSE) %>%
+      print()
+  }
+
+hypervolume_grab <- function(X, Y, Z) {
+  group_by(index) %>%
+  base::as.matrix() %>%
+  select(X, Y, Z) %>%
+  expectation_convex(check.memory = FALSE) 
+}
+
+
+hypervolume_grab(GolfBall_Volume_Pre)
+
+#look into making a function or creating a list (i.e. list1 = c(HV1, HV2, HV3, etc.) for each forloop scenario)
+
+HV2 <- GolfBall_Volume_Pre %>%
+  filter(index == "2") %>%
+  select(X, Y, Z) %>%
+  as.matrix() %>%
+  expectation_convex(check.memory = FALSE)
+
+HV4 <- GolfBall_Volume_Pre %>%
+  filter(index == "4") %>%
+  select(X, Y, Z) %>%
+  expectation_convex(check.memory = FALSE) 
+
+test <- hypervolume_set(HV2, HV4, num.points.max = NULL,
+verbose = TRUE, check.memory = FALSE, distance.factor = 1)
+
+str(test)
+
+myvol <- test@HVList$Intersection@Volume
+
+get_volume(HV4)
+```
+####Post-Augmentation
+```{r}
+
+```
