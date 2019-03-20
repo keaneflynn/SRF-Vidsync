@@ -610,22 +610,34 @@ Behavior_Types <-
   select(BACI_date, site, sample_event, Behaviors) %>% 
   group_by(site, sample_event) %>% 
   count(Behaviors)
-Behavior_Types
 
 Forage_Types <- Behavior_Types %>%
   ungroup() %>% 
   filter(!Behaviors == "Attack") %>% 
   filter(!Behaviors == "Movement") %>% 
   filter(!Behaviors == "Surface Strike")
-Forage_Types
+
+Normalized_Forage_Types <- Forage_Types %>% 
+  group_by(site, sample_event) %>% 
+  mutate(forage_type_percent = n/sum(n))
 
 Forage_Types$sample_event1 <- factor(Forage_Types$sample_event, levels = c("Before", "After"))
+Normalized_Forage_Types$sample_event2 <- factor(Normalized_Forage_Types$sample_event, levels = c("Before", "After"))
 
-ggplot(Forage_Types, aes(x = site, y = n, fill = Behaviors)) +
+Forage_Types_Plot <- 
+  ggplot(Forage_Types, aes(x = site, y = n, fill = Behaviors)) +
   geom_col(width = 0.4) + 
   facet_grid(.~sample_event1) +
   xlab("Site") +
   ylab("Number of Forage Events")
+Forage_Types_Plot
+
+Normalized_Forage_Types_Plot <- 
+  ggplot(Normalized_Forage_Types, aes(x = site, y = forage_type_percent, fill = Behaviors)) + geom_col(width = 0.4) + 
+  facet_grid(.~sample_event2) +
+  xlab("Site") +
+  ylab("Proportion of Forage Events")
+Normalized_Forage_Types_Plot
 ```
 ####Post-Augmentation
 ```{r}
