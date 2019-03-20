@@ -3,6 +3,9 @@ SRF VidSync 2019
 Keane Flynn
 3/18/2019
 
+SRF 2019 VidSync Analysis
+=========================
+
 Load Libraries
 --------------
 
@@ -26,13 +29,13 @@ library(readr)
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ────────────────────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
     ## ✔ tibble  1.4.2     ✔ stringr 1.3.1
     ## ✔ tidyr   0.8.1     ✔ forcats 0.3.0
 
-    ## ── Conflicts ───────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
@@ -314,6 +317,7 @@ nnd_GolfBall_Pre <- GolfBall_VidSync_Pre %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -326,7 +330,7 @@ nnd_GolfBall_Pre <- GolfBall_VidSync_Pre %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-06-30")) %>%
   mutate(BACI_date = as.Date("2018-06-29")) %>%
@@ -341,6 +345,7 @@ nnd_HalfTire_Pre <- HalfTire_VidSync_Pre %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -353,7 +358,7 @@ nnd_HalfTire_Pre <- HalfTire_VidSync_Pre %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-06-29")) %>%
   mutate(BACI_date = as.Date("2018-06-29")) %>%
@@ -368,6 +373,7 @@ nnd_RoachRun_Pre <- RoachRun_VidSync_Pre %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -380,7 +386,7 @@ nnd_RoachRun_Pre <- RoachRun_VidSync_Pre %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-06-29")) %>%
   mutate(BACI_date = as.Date("2018-06-29")) %>%
@@ -395,6 +401,7 @@ nnd_JesusToast_Pre <- JesusToast_VidSync_Pre %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -407,7 +414,7 @@ nnd_JesusToast_Pre <- JesusToast_VidSync_Pre %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-06-30")) %>%
   mutate(BACI_date = as.Date("2018-06-29")) %>%
@@ -426,6 +433,7 @@ nnd_GolfBall_Post <- GolfBall_VidSync_Post %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -438,7 +446,7 @@ nnd_GolfBall_Post <- GolfBall_VidSync_Post %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-07-06")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
@@ -453,6 +461,7 @@ nnd_HalfTire_Post <- HalfTire_VidSync_Post %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -465,7 +474,7 @@ nnd_HalfTire_Post <- HalfTire_VidSync_Post %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-07-05")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
@@ -480,6 +489,7 @@ nnd_RoachRun_Post <- RoachRun_VidSync_Post %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -492,7 +502,7 @@ nnd_RoachRun_Post <- RoachRun_VidSync_Post %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-07-05")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
@@ -507,6 +517,7 @@ nnd_JesusToast_Post <- JesusToast_VidSync_Post %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -519,7 +530,7 @@ nnd_JesusToast_Post <- JesusToast_VidSync_Post %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-07-06")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
@@ -528,24 +539,25 @@ nnd_JesusToast_Post <- JesusToast_VidSync_Post %>%
 
 nnd_data <- 
   bind_rows(nnd_RoachRun_Pre, nnd_RoachRun_Post, nnd_GolfBall_Pre, nnd_GolfBall_Post, nnd_HalfTire_Pre, nnd_HalfTire_Post, nnd_JesusToast_Pre, nnd_JesusToast_Post) %>%
-  select(date, BACI_date, sample_event, site, index, mean_nnd, median_nnd)
+  select(date, BACI_date, sample_event, site, subsample, index, mean_nnd, median_nnd)
 nnd_data
 ```
 
-    ## # A tibble: 77 x 7
-    ##    date       BACI_date  sample_event site  index mean_nnd median_nnd
-    ##    <date>     <date>     <chr>        <chr> <dbl>    <dbl>      <dbl>
-    ##  1 2018-06-29 2018-06-29 Before       18.5      1   0.0725     0.0725
-    ##  2 2018-06-29 2018-06-29 Before       18.5      2  39.1       39.7   
-    ##  3 2018-06-29 2018-06-29 Before       18.5      6  63.9       40.2   
-    ##  4 2018-06-29 2018-06-29 Before       18.5      9  43.2       40.4   
-    ##  5 2018-06-29 2018-06-29 Before       18.5     10  69.5       72.0   
-    ##  6 2018-06-29 2018-06-29 Before       18.5     12  84.6       84.9   
-    ##  7 2018-06-29 2018-06-29 Before       18.5     15  37.8       39.6   
-    ##  8 2018-06-29 2018-06-29 Before       18.5     18  41.4       39.2   
-    ##  9 2018-06-29 2018-06-29 Before       18.5     19  32.0       32.0   
-    ## 10 2018-07-05 2018-07-05 Before       18.5      3   3.77       3.77  
-    ## # ... with 67 more rows
+    ## # A tibble: 77 x 8
+    ## # Groups:   subsample [6]
+    ##    date       BACI_date  sample_event site  subsample index mean_nnd
+    ##    <date>     <date>     <chr>        <chr>     <dbl> <dbl>    <dbl>
+    ##  1 2018-06-29 2018-06-29 Before       18.5          1     1   0.0725
+    ##  2 2018-06-29 2018-06-29 Before       18.5          1     2  39.1   
+    ##  3 2018-06-29 2018-06-29 Before       18.5          2     6  63.9   
+    ##  4 2018-06-29 2018-06-29 Before       18.5          3     9  43.2   
+    ##  5 2018-06-29 2018-06-29 Before       18.5          3    10  69.5   
+    ##  6 2018-06-29 2018-06-29 Before       18.5          4    12  84.6   
+    ##  7 2018-06-29 2018-06-29 Before       18.5          5    15  37.8   
+    ##  8 2018-06-29 2018-06-29 Before       18.5          6    18  41.4   
+    ##  9 2018-06-29 2018-06-29 Before       18.5          6    19  32.0   
+    ## 10 2018-07-05 2018-07-05 Before       18.5          1     3   3.77  
+    ## # ... with 67 more rows, and 1 more variable: median_nnd <dbl>
 
 ### Distance Travelled per Time (cm/s)
 
@@ -576,7 +588,7 @@ GolfBall_DistPerTime_Pre <- GolfBall_VidSync_Pre %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
   distinct() %>%
   arrange(as.numeric(index))
 
@@ -603,7 +615,7 @@ HalfTire_DistPerTime_Pre <- HalfTire_VidSync_Pre %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+ dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
   distinct() %>%
   arrange(as.numeric(index))
   
@@ -630,7 +642,7 @@ RoachRun_DistPerTime_Pre <- RoachRun_VidSync_Pre %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>% 
   distinct() %>%
   arrange(as.numeric(index))
 
@@ -656,7 +668,7 @@ JesusToast_DistPerTime_Pre <- JesusToast_VidSync_Pre %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
   distinct() %>%
   arrange(as.numeric(index))
 ```
@@ -686,7 +698,7 @@ GolfBall_DistPerTime_Post <- GolfBall_VidSync_Post %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
   distinct() %>%
   arrange(as.numeric(index))
 
@@ -713,7 +725,7 @@ RoachRun_DistPerTime_Post <- RoachRun_VidSync_Post %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
   distinct() %>%
   arrange(as.numeric(index))
 
@@ -739,7 +751,7 @@ HalfTire_DistPerTime_Post <- HalfTire_VidSync_Post %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
   distinct() %>%
   arrange(as.numeric(index))
 
@@ -765,30 +777,30 @@ JesusToast_DistPerTime_Post <- JesusToast_VidSync_Post %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
   distinct() %>%
   arrange(as.numeric(index))
 
 MovementPerTime_Data <-
 bind_rows(RoachRun_DistPerTime_Pre, RoachRun_DistPerTime_Post, GolfBall_DistPerTime_Pre, GolfBall_DistPerTime_Post, HalfTire_DistPerTime_Pre, HalfTire_DistPerTime_Post, JesusToast_DistPerTime_Pre, JesusToast_DistPerTime_Post) %>%
-  select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean)
+  select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean)
 MovementPerTime_Data
 ```
 
-    ## # A tibble: 148 x 8
+    ## # A tibble: 148 x 9
     ## # Groups:   index [47]
-    ##    date       BACI_date  sample_event site  subsample index
-    ##    <date>     <date>     <chr>        <chr>     <dbl> <dbl>
-    ##  1 2018-06-29 2018-06-29 Before       18.5          1     1
-    ##  2 2018-06-29 2018-06-29 Before       18.5          1     2
-    ##  3 2018-06-29 2018-06-29 Before       18.5          1     4
-    ##  4 2018-06-29 2018-06-29 Before       18.5          2     5
-    ##  5 2018-06-29 2018-06-29 Before       18.5          2     6
-    ##  6 2018-06-29 2018-06-29 Before       18.5          2     7
-    ##  7 2018-06-29 2018-06-29 Before       18.5          3     8
-    ##  8 2018-06-29 2018-06-29 Before       18.5          3     9
-    ##  9 2018-06-29 2018-06-29 Before       18.5          3    10
-    ## 10 2018-06-29 2018-06-29 Before       18.5          4    11
+    ##    date       BACI_date  sample_event site  species subsample index
+    ##    <date>     <date>     <chr>        <chr> <chr>       <dbl> <dbl>
+    ##  1 2018-06-29 2018-06-29 Before       18.5  Omykiss         1     1
+    ##  2 2018-06-29 2018-06-29 Before       18.5  Omykiss         1     2
+    ##  3 2018-06-29 2018-06-29 Before       18.5  Omykiss         1     4
+    ##  4 2018-06-29 2018-06-29 Before       18.5  Omykiss         2     5
+    ##  5 2018-06-29 2018-06-29 Before       18.5  Omykiss         2     6
+    ##  6 2018-06-29 2018-06-29 Before       18.5  Omykiss         2     7
+    ##  7 2018-06-29 2018-06-29 Before       18.5  Omykiss         3     8
+    ##  8 2018-06-29 2018-06-29 Before       18.5  Omykiss         3     9
+    ##  9 2018-06-29 2018-06-29 Before       18.5  Okisut…         3    10
+    ## 10 2018-06-29 2018-06-29 Before       18.5  Omykiss         4    11
     ## # ... with 138 more rows, and 2 more variables: DistPerTime_Median <dbl>,
     ## #   DistPerTime_Mean <dbl>
 
@@ -807,7 +819,7 @@ Breaking down the proportion of each type of forage event and how it changes thr
 #### Pre-Augmentation
 
 ``` r
-Behavior_Types <-
+Behavior_Types_Dataset <-
   bind_rows(RoachRun_VidSync_Pre, RoachRun_VidSync_Post, GolfBall_VidSync_Pre, GolfBall_VidSync_Post, HalfTire_VidSync_Pre, HalfTire_VidSync_Post, JesusToast_VidSync_Pre, JesusToast_VidSync_Post) %>%
   filter(grepl("^Subsample.*", objects)) %>%
   filter(!grepl("^Length.*", event)) %>%
@@ -815,70 +827,53 @@ Behavior_Types <-
   arrange(BACI_date, site, time) %>%
   group_by(sample_event, site) %>% 
   mutate(Behaviors = if_else(grepl("^Drift_Forage", event), "Drift Forage", if_else(grepl("^Search_Forage", event), "Search Forage", if_else(grepl("^Search_Forage", event), "Search Forage", if_else(grepl("^Benthic_Forage", event), "Benthic Forage", if_else(grepl("Nip|Attack", event), "Attack", if_else(grepl("^Surface_Strike", event), "Surface Strike", if_else(grepl("^Movement", event), "Movement", "NA")))))))) %>% 
-  select(BACI_date, site, sample_event, Behaviors) %>% 
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  filter(!species == "Omykiss | Okisutch") %>% 
+  select(BACI_date, site, sample_event, species, subsample, index, Behaviors) 
+
+Forage_Types <- Behavior_Types_Dataset %>%
   group_by(site, sample_event) %>% 
-  count(Behaviors)
-Behavior_Types
-```
-
-    ## # A tibble: 28 x 4
-    ## # Groups:   site, sample_event [8]
-    ##    site  sample_event Behaviors          n
-    ##    <chr> <chr>        <chr>          <int>
-    ##  1 18.2  After        Attack             3
-    ##  2 18.2  After        Benthic Forage     3
-    ##  3 18.2  After        Drift Forage      37
-    ##  4 18.2  After        Movement          10
-    ##  5 18.2  After        Search Forage     15
-    ##  6 18.2  Before       Drift Forage      43
-    ##  7 18.2  Before       Search Forage     29
-    ##  8 18.2  Before       Surface Strike     1
-    ##  9 18.3  After        Benthic Forage     2
-    ## 10 18.3  After        Movement          64
-    ## # ... with 18 more rows
-
-``` r
-Forage_Types <- Behavior_Types %>%
-  ungroup() %>% 
+  count(Behaviors) %>% 
   filter(!Behaviors == "Attack") %>% 
   filter(!Behaviors == "Movement") %>% 
   filter(!Behaviors == "Surface Strike")
-Forage_Types
-```
 
-    ## # A tibble: 14 x 4
-    ##    site  sample_event Behaviors          n
-    ##    <chr> <chr>        <chr>          <int>
-    ##  1 18.2  After        Benthic Forage     3
-    ##  2 18.2  After        Drift Forage      37
-    ##  3 18.2  After        Search Forage     15
-    ##  4 18.2  Before       Drift Forage      43
-    ##  5 18.2  Before       Search Forage     29
-    ##  6 18.3  After        Benthic Forage     2
-    ##  7 18.3  Before       Search Forage     15
-    ##  8 18.5  After        Drift Forage     263
-    ##  9 18.5  After        Search Forage     15
-    ## 10 18.5  Before       Drift Forage     102
-    ## 11 18.5  Before       Search Forage     40
-    ## 12 18.8  After        Drift Forage     369
-    ## 13 18.8  After        Search Forage     21
-    ## 14 18.8  Before       Search Forage     52
+Normalized_Forage_Types <- Forage_Types %>% 
+  group_by(site, sample_event) %>% 
+  mutate(forage_type_percent = n/sum(n))
 
-``` r
 Forage_Types$sample_event1 <- factor(Forage_Types$sample_event, levels = c("Before", "After"))
+Normalized_Forage_Types$sample_event2 <- factor(Normalized_Forage_Types$sample_event, levels = c("Before", "After"))
 
-ggplot(Forage_Types, aes(x = site, y = n, fill = Behaviors)) +
+Forage_Types_Plot <- 
+  ggplot(Forage_Types, aes(x = site, y = n, fill = Behaviors)) +
   geom_col(width = 0.4) + 
   facet_grid(.~sample_event1) +
   xlab("Site") +
   ylab("Number of Forage Events")
+Forage_Types_Plot
 ```
 
-![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-11-1.png) \#\#\#\#Post-Augmentation
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-11-1.png)
+
+``` r
+Normalized_Forage_Types_Plot <- 
+  ggplot(Normalized_Forage_Types, aes(x = site, y = forage_type_percent, fill = Behaviors)) + geom_col(width = 0.4) + 
+  facet_grid(.~sample_event2) +
+  xlab("Site") +
+  ylab("Proportion of Forage Events")
+Normalized_Forage_Types_Plot
+```
+
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-11-2.png) \#\#\#\#Post-Augmentation
 
 ### Volume Occupied
 
 Using Delaunay Triangulation to calculate the volume each fish is occupying during each subsample.
+
+#### Importing Final Volume CSV
 
 #### Pre-Augmentation
 
@@ -3359,7 +3354,7 @@ str(test)
     ##   .. .. .. ..@ Volume             : num 0.00537
     ##   .. .. .. ..@ PointDensity       : num 10050413
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.3 25.3 25.3 25.3 25.4 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.3 25.3 25.3 25.3 25.3 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
@@ -3375,7 +3370,7 @@ str(test)
     ##   .. .. .. ..@ Volume             : num 0.0106
     ##   .. .. .. ..@ PointDensity       : num 5109528
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.5 25.3 25.3 25.4 25.3 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.3 25.3 25.4 25.4 25.2 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
@@ -3385,53 +3380,53 @@ str(test)
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.00287
-    ##   .. .. .. ..@ PointDensity       : num 10370587
+    ##   .. .. .. ..@ Volume             : num 0.00286
+    ##   .. .. .. ..@ PointDensity       : num 10357076
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:29788, 1:3] 25.2 25.3 25.3 25.3 25.3 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:29585, 1:3] 25.2 25.4 25.4 25.2 25.4 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:29788] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:29585] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Union       :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Union of (Convex expectation for structure(c(25.511185, 25.525606, 25.346043, 25.281542, 25.349791, , Convex ex"| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
     ##   .. .. .. ..@ Volume             : num 0.0131
-    ##   .. .. .. ..@ PointDensity       : num 5076110
+    ##   .. .. .. ..@ PointDensity       : num 5079286
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:66277, 1:3] 25.4 25.4 25.4 25.3 25.5 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:66399, 1:3] 25.3 25.4 25.3 25.3 25.1 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:66277] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:66399] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Unique_1    :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Unique component of (Convex expectation for structure(c(25.511185, 25.525606, 25.346043, 25.281542, 25.349791, "| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.0025
+    ##   .. .. .. ..@ Volume             : num 0.00251
     ##   .. .. .. ..@ PointDensity       : num 5109397
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:12755, 1:3] 25.4 25.4 25.4 25.3 25.5 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:12836, 1:3] 25.3 25.4 25.3 25.3 25.1 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:12755] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:12836] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Unique_2    :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Unique component of (Convex expectation for structure(c(25.059107, 25.185759, 25.236544, 25.3286, 25.387087, ) "| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.00769
-    ##   .. .. .. ..@ PointDensity       : num 5052864
+    ##   .. .. .. ..@ Volume             : num 0.0077
+    ##   .. .. .. ..@ PointDensity       : num 5058302
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:38846, 1:3] 25.2 25.3 25.4 25.1 25.3 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:38968, 1:3] 25.3 25.4 25.4 25.2 25.4 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:38846] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:38968] 1 1 1 1 1 1 1 1 1 1 ...
 
 ``` r
 myvol <- test@HVList$Intersection@Volume

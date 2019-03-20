@@ -1,0 +1,10 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/477942/4039a87c6c41443faab8d353137cad2d
+bundleId: https://api.rpubs.com/api/v1/document/477942/4039a87c6c41443faab8d353137cad2d
+url: http://rpubs.com/keaneflynn/477942
+when: 1553106267.16253

@@ -145,6 +145,7 @@ nnd_GolfBall_Pre <- GolfBall_VidSync_Pre %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -157,7 +158,7 @@ nnd_GolfBall_Pre <- GolfBall_VidSync_Pre %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-06-30")) %>%
   mutate(BACI_date = as.Date("2018-06-29")) %>%
@@ -172,6 +173,7 @@ nnd_HalfTire_Pre <- HalfTire_VidSync_Pre %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -184,7 +186,7 @@ nnd_HalfTire_Pre <- HalfTire_VidSync_Pre %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-06-29")) %>%
   mutate(BACI_date = as.Date("2018-06-29")) %>%
@@ -199,6 +201,7 @@ nnd_RoachRun_Pre <- RoachRun_VidSync_Pre %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -211,7 +214,7 @@ nnd_RoachRun_Pre <- RoachRun_VidSync_Pre %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-06-29")) %>%
   mutate(BACI_date = as.Date("2018-06-29")) %>%
@@ -226,6 +229,7 @@ nnd_JesusToast_Pre <- JesusToast_VidSync_Pre %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -238,7 +242,7 @@ nnd_JesusToast_Pre <- JesusToast_VidSync_Pre %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-06-30")) %>%
   mutate(BACI_date = as.Date("2018-06-29")) %>%
@@ -255,6 +259,7 @@ nnd_GolfBall_Post <- GolfBall_VidSync_Post %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -267,7 +272,7 @@ nnd_GolfBall_Post <- GolfBall_VidSync_Post %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-07-06")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
@@ -282,6 +287,7 @@ nnd_HalfTire_Post <- HalfTire_VidSync_Post %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -294,7 +300,7 @@ nnd_HalfTire_Post <- HalfTire_VidSync_Post %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-07-05")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
@@ -309,6 +315,7 @@ nnd_RoachRun_Post <- RoachRun_VidSync_Post %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -321,7 +328,7 @@ nnd_RoachRun_Post <- RoachRun_VidSync_Post %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-07-05")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
@@ -336,6 +343,7 @@ nnd_JesusToast_Post <- JesusToast_VidSync_Post %>%
   filter(!grepl("^Nip.*", event)) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   arrange(time) %>%
   group_by(time) %>%
   mutate(distance_travelled_X_cm = X - lag(X, default = first(X))) %>%
@@ -348,7 +356,7 @@ nnd_JesusToast_Post <- JesusToast_VidSync_Post %>%
   filter(!nnd == 0) %>%
   filter(nnd == min(nnd)) %>%
   ungroup() %>%
-  group_by(index) %>%
+  group_by(subsample, index) %>%
   summarise(mean_nnd = mean(nnd), median_nnd = median(nnd)) %>%
   mutate(date = as.Date("2018-07-06")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
@@ -357,7 +365,7 @@ nnd_JesusToast_Post <- JesusToast_VidSync_Post %>%
 
 nnd_data <- 
   bind_rows(nnd_RoachRun_Pre, nnd_RoachRun_Post, nnd_GolfBall_Pre, nnd_GolfBall_Post, nnd_HalfTire_Pre, nnd_HalfTire_Post, nnd_JesusToast_Pre, nnd_JesusToast_Post) %>%
-  select(date, BACI_date, sample_event, site, index, mean_nnd, median_nnd)
+  select(date, BACI_date, sample_event, site, subsample, index, mean_nnd, median_nnd)
 nnd_data
 ```
 ###Distance Travelled per Time (cm/s)
@@ -387,7 +395,7 @@ GolfBall_DistPerTime_Pre <- GolfBall_VidSync_Pre %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
   distinct() %>%
   arrange(as.numeric(index))
 
@@ -414,7 +422,7 @@ HalfTire_DistPerTime_Pre <- HalfTire_VidSync_Pre %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+ dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
   distinct() %>%
   arrange(as.numeric(index))
   
@@ -441,7 +449,7 @@ RoachRun_DistPerTime_Pre <- RoachRun_VidSync_Pre %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>% 
   distinct() %>%
   arrange(as.numeric(index))
 
@@ -467,7 +475,7 @@ JesusToast_DistPerTime_Pre <- JesusToast_VidSync_Pre %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
   distinct() %>%
   arrange(as.numeric(index))
 ```
@@ -495,7 +503,7 @@ GolfBall_DistPerTime_Post <- GolfBall_VidSync_Post %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
   distinct() %>%
   arrange(as.numeric(index))
 
@@ -522,7 +530,7 @@ RoachRun_DistPerTime_Post <- RoachRun_VidSync_Post %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
   distinct() %>%
   arrange(as.numeric(index))
 
@@ -548,7 +556,7 @@ HalfTire_DistPerTime_Post <- HalfTire_VidSync_Post %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
   distinct() %>%
   arrange(as.numeric(index))
 
@@ -574,13 +582,13 @@ JesusToast_DistPerTime_Post <- JesusToast_VidSync_Post %>%
   filter(!distance_cm_per_sec == Inf) %>%
   mutate(DistPerTime_Median = median(fish_distance_travelled_cm)) %>%
   mutate(DistPerTime_Mean = mean(fish_distance_travelled_cm)) %>%
-  dplyr::select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
+  dplyr::select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean) %>%
   distinct() %>%
   arrange(as.numeric(index))
 
 MovementPerTime_Data <-
 bind_rows(RoachRun_DistPerTime_Pre, RoachRun_DistPerTime_Post, GolfBall_DistPerTime_Pre, GolfBall_DistPerTime_Post, HalfTire_DistPerTime_Pre, HalfTire_DistPerTime_Post, JesusToast_DistPerTime_Pre, JesusToast_DistPerTime_Post) %>%
-  select(date, BACI_date, sample_event, site, subsample, index, DistPerTime_Median, DistPerTime_Mean)
+  select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean)
 MovementPerTime_Data
 ```
 ###Distance to Forage Attempt (DFA)
@@ -599,7 +607,7 @@ Breaking down the proportion of each type of forage event and how it changes thr
 
 ####Pre-Augmentation
 ```{r}
-Behavior_Types <-
+Behavior_Types_Dataset <-
   bind_rows(RoachRun_VidSync_Pre, RoachRun_VidSync_Post, GolfBall_VidSync_Pre, GolfBall_VidSync_Post, HalfTire_VidSync_Pre, HalfTire_VidSync_Post, JesusToast_VidSync_Pre, JesusToast_VidSync_Post) %>%
   filter(grepl("^Subsample.*", objects)) %>%
   filter(!grepl("^Length.*", event)) %>%
@@ -607,12 +615,15 @@ Behavior_Types <-
   arrange(BACI_date, site, time) %>%
   group_by(sample_event, site) %>% 
   mutate(Behaviors = if_else(grepl("^Drift_Forage", event), "Drift Forage", if_else(grepl("^Search_Forage", event), "Search Forage", if_else(grepl("^Search_Forage", event), "Search Forage", if_else(grepl("^Benthic_Forage", event), "Benthic Forage", if_else(grepl("Nip|Attack", event), "Attack", if_else(grepl("^Surface_Strike", event), "Surface Strike", if_else(grepl("^Movement", event), "Movement", "NA")))))))) %>% 
-  select(BACI_date, site, sample_event, Behaviors) %>% 
-  group_by(site, sample_event) %>% 
-  count(Behaviors)
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>%
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  filter(!species == "Omykiss | Okisutch") %>% 
+  select(BACI_date, site, sample_event, species, subsample, index, Behaviors) 
 
-Forage_Types <- Behavior_Types %>%
-  ungroup() %>% 
+Forage_Types <- Behavior_Types_Dataset %>%
+  group_by(site, sample_event) %>% 
+  count(Behaviors) %>% 
   filter(!Behaviors == "Attack") %>% 
   filter(!Behaviors == "Movement") %>% 
   filter(!Behaviors == "Surface Strike")
@@ -645,6 +656,11 @@ Normalized_Forage_Types_Plot
 ```
 ###Volume Occupied
 Using Delaunay Triangulation to calculate the volume each fish is occupying during each subsample.
+
+####Importing Final Volume CSV
+```{r}
+
+```
 
 ####Pre-Augmentation
 ```{r}
