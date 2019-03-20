@@ -4,6 +4,7 @@ author: "Keane Flynn"
 date: "3/18/2019"
 output: github_document
 ---
+#SRF 2019 VidSync Analysis
 
 ```{r setup, include=FALSE, cache=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
