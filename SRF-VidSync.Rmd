@@ -122,7 +122,7 @@ Vidsync_TestMeasurements <-
 Vidsync_TestMeasurements
 
 ggplot(Vidsync_TestMeasurements, aes(Test_Type, Percent_Accuracy)) + 
-  geom_col(width = 0.5, fill = "Blue") + 
+  geom_col(width = 0.4, fill = "white", color = "black") + 
   facet_grid(Site ~ Event) +
   xlab("Test Type") +
   ylab("Percent Accuracy") 
@@ -605,24 +605,26 @@ Behavior_Types <-
   select(date, BACI_date, site, sample_event, objects, event, time) %>%
   arrange(BACI_date, site, time) %>%
   group_by(sample_event, site) %>% 
-  mutate(drift_forage = cumsum(if_else(grepl("^Drift_Forage", event), 1, 0))) %>%
-  mutate(search_forage = cumsum(if_else(grepl("^Search_Forage", event), 1, 0))) %>%
-  mutate(benthic_forage = cumsum(if_else(grepl("^Benthic_Forage", event), 1, 0))) %>%
-  mutate(aggression = cumsum(if_else(grepl("Nip|Attack", event), 1, 0))) %>% 
-  mutate(surface_strike = cumsum(if_else(grepl("^Surface_Strike", event), 1, 0))) %>% 
-  mutate(movement = cumsum(if_else(grepl("^Movement", event), 1, 0))) %>%
-  mutate(drift_forage_max = max(drift_forage)) %>% 
-  mutate(search_forage_max = max(search_forage)) %>%
-  mutate(benthic_forage_max = max(benthic_forage)) %>% 
-  mutate(aggression_max = max(aggression)) %>% 
-  mutate(surface_strike_max = max(surface_strike)) %>% 
-  mutate(movement_max = max(movement)) %>%
-  distinct(drift_forage_max, search_forage_max, benthic_forage_max, aggression_max, surface_strike_max, movement_max)
+  mutate(Behaviors = if_else(grepl("^Drift_Forage", event), "Drift Forage", if_else(grepl("^Search_Forage", event), "Search Forage", if_else(grepl("^Search_Forage", event), "Search Forage", if_else(grepl("^Benthic_Forage", event), "Benthic Forage", if_else(grepl("Nip|Attack", event), "Attack", if_else(grepl("^Surface_Strike", event), "Surface Strike", if_else(grepl("^Movement", event), "Movement", "NA")))))))) %>% 
+  select(BACI_date, site, sample_event, Behaviors) %>% 
+  group_by(site, sample_event) %>% 
+  count(Behaviors)
 Behavior_Types
 
 Forage_Types <- Behavior_Types %>%
-  select(site, sample_event, drift_forage_max, search_forage_max, benthic_forage_max)
+  ungroup() %>% 
+  filter(!Behaviors == "Attack") %>% 
+  filter(!Behaviors == "Movement") %>% 
+  filter(!Behaviors == "Surface Strike")
 Forage_Types
+
+Forage_Types$sample_event1 <- factor(Forage_Types$sample_event, levels = c("Before", "After"))
+
+ggplot(Forage_Types, aes(x = site, y = n, fill = Behaviors)) +
+  geom_col(width = 0.4) + 
+  facet_grid(.~sample_event1) +
+  xlab("Site") +
+  ylab("Number of Forage Events")
 ```
 ####Post-Augmentation
 ```{r}
