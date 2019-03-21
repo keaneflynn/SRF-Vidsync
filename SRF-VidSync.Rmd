@@ -22,6 +22,7 @@ library(rgl)
 library(hypervolume)
 library(zoo)
 library(stringr)
+library(data.table)
 ```
 
 #VidSync Data
@@ -626,28 +627,32 @@ Forage_Types <- Behavior_Types_Dataset %>%
   count(Behaviors) %>% 
   filter(!Behaviors == "Attack") %>% 
   filter(!Behaviors == "Movement") %>% 
-  filter(!Behaviors == "Surface Strike")
+  filter(!Behaviors == "Surface Strike") %>% 
+  setnames(old = "Behaviors", new = "Foraging_Mode")
 
 Normalized_Forage_Types <- Forage_Types %>% 
   group_by(site, sample_event) %>% 
-  mutate(forage_type_percent = n/sum(n))
+  mutate(forage_mode_percent = n/sum(n))
 
 Forage_Types$sample_event1 <- factor(Forage_Types$sample_event, levels = c("Before", "After"))
 Normalized_Forage_Types$sample_event2 <- factor(Normalized_Forage_Types$sample_event, levels = c("Before", "After"))
 
 Forage_Types_Plot <- 
-  ggplot(Forage_Types, aes(x = site, y = n, fill = Behaviors)) +
+  ggplot(Forage_Types, aes(x = site, y = n, fill = Foraging_Mode)) +
   geom_col(width = 0.4) + 
   facet_grid(.~sample_event1) +
   xlab("Site") +
-  ylab("Number of Forage Events")
+  ylab("Number of Forage Events") +
+  scale_fill_discrete(name = "Foraging Mode")
 Forage_Types_Plot
 
 Normalized_Forage_Types_Plot <- 
-  ggplot(Normalized_Forage_Types, aes(x = site, y = forage_type_percent, fill = Behaviors)) + geom_col(width = 0.4) + 
+  ggplot(Normalized_Forage_Types, aes(x = site, y = forage_mode_percent, fill = Foraging_Mode)) + 
+  geom_col(width = 0.4) + 
   facet_grid(.~sample_event2) +
   xlab("Site") +
-  ylab("Proportion of Forage Events")
+  ylab("Proportion of Fish Foraging") +
+  scale_fill_discrete(name = "Foraging Mode")
 Normalized_Forage_Types_Plot
 ```
 ####Post-Augmentation
