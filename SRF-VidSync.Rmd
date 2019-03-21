@@ -667,7 +667,7 @@ Using Delaunay Triangulation to calculate the volume each fish is occupying duri
 
 ```
 
-####Pre-Augmentation
+####Pre-Augmentation: All Behaviors
 ```{r}
 GolfBall_Volume_Pre <- GolfBall_VidSync_Pre %>%
   arrange(objects) %>%
@@ -791,7 +791,7 @@ for (i in 1:13) {
     print()
 }
 ```
-####Post-Augmentation
+####Post-Augmentation: All Behaviors
 ```{r}
 GolfBall_Volume_Post <- GolfBall_VidSync_Post %>%
   arrange(objects) %>%
@@ -909,6 +909,141 @@ for (i in 1:16) {
     print()
 }
 ```
+####Pre-Augmentation: Foraging Modes
+```{r}
+GolfBall_Volume_Forage_Pre <- GolfBall_VidSync_Pre %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+a <- c(7,13)
+for (i in a) {
+  GolfBall_Volume_Forage_Pre %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+
+HalfTire_Volume_Pre <- HalfTire_VidSync_Pre %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:8) {
+  HalfTire_Volume_Forage_Pre %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+
+RoachRun_Volume_Forage_Pre <- RoachRun_VidSync_Pre %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:19) {
+  if (i == 3) {
+    next
+  }
+  if (i == 7) {
+    next
+  }
+  if (i == 14) {
+    next
+  }
+  if (i == 16) {
+    next
+  }
+  RoachRun_Volume_Forage_Pre %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+
+JesusToast_Volume_Forage_Pre <- JesusToast_VidSync_Pre %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:13) {
+  if (i == 2) {
+    next
+  }
+  if (i == 5) {
+    next
+  }
+  if (i == 6) {
+    next
+  }
+  if (i == 10) {
+    next
+  }
+  if (i == 12) {
+    next
+  }
+  JesusToast_Volume_Forage_Pre %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+```
+
 ###Overlap in Forage Volumes
 Using the 'Hypervolume' package to calculate overlap in occupied volumes by the fish observed in each subsample.
 

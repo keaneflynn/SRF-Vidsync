@@ -29,13 +29,13 @@ library(readr)
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ────────────────────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
     ## ✔ tibble  1.4.2     ✔ stringr 1.3.1
     ## ✔ tidyr   0.8.1     ✔ forcats 0.3.0
 
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ───────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
@@ -79,7 +79,28 @@ library(zoo)
 
 ``` r
 library(stringr)
+library(data.table)
 ```
+
+    ## 
+    ## Attaching package: 'data.table'
+
+    ## The following object is masked from 'package:magic':
+    ## 
+    ##     shift
+
+    ## The following objects are masked from 'package:lubridate':
+    ## 
+    ##     hour, isoweek, mday, minute, month, quarter, second, wday,
+    ##     week, yday, year
+
+    ## The following object is masked from 'package:purrr':
+    ## 
+    ##     transpose
+
+    ## The following objects are masked from 'package:dplyr':
+    ## 
+    ##     between, first, last
 
 VidSync Data
 ============
@@ -838,21 +859,23 @@ Forage_Types <- Behavior_Types_Dataset %>%
   count(Behaviors) %>% 
   filter(!Behaviors == "Attack") %>% 
   filter(!Behaviors == "Movement") %>% 
-  filter(!Behaviors == "Surface Strike")
+  filter(!Behaviors == "Surface Strike") %>% 
+  setnames(old = "Behaviors", new = "Foraging_Mode")
 
 Normalized_Forage_Types <- Forage_Types %>% 
   group_by(site, sample_event) %>% 
-  mutate(forage_type_percent = n/sum(n))
+  mutate(forage_mode_percent = n/sum(n))
 
 Forage_Types$sample_event1 <- factor(Forage_Types$sample_event, levels = c("Before", "After"))
 Normalized_Forage_Types$sample_event2 <- factor(Normalized_Forage_Types$sample_event, levels = c("Before", "After"))
 
 Forage_Types_Plot <- 
-  ggplot(Forage_Types, aes(x = site, y = n, fill = Behaviors)) +
+  ggplot(Forage_Types, aes(x = site, y = n, fill = Foraging_Mode)) +
   geom_col(width = 0.4) + 
   facet_grid(.~sample_event1) +
   xlab("Site") +
-  ylab("Number of Forage Events")
+  ylab("Number of Forage Events") +
+  scale_fill_discrete(name = "Foraging Mode")
 Forage_Types_Plot
 ```
 
@@ -860,10 +883,12 @@ Forage_Types_Plot
 
 ``` r
 Normalized_Forage_Types_Plot <- 
-  ggplot(Normalized_Forage_Types, aes(x = site, y = forage_type_percent, fill = Behaviors)) + geom_col(width = 0.4) + 
+  ggplot(Normalized_Forage_Types, aes(x = site, y = forage_mode_percent, fill = Foraging_Mode)) + 
+  geom_col(width = 0.4) + 
   facet_grid(.~sample_event2) +
   xlab("Site") +
-  ylab("Proportion of Forage Events")
+  ylab("Proportion of Fish Foraging") +
+  scale_fill_discrete(name = "Foraging Mode")
 Normalized_Forage_Types_Plot
 ```
 
@@ -3354,7 +3379,7 @@ str(test)
     ##   .. .. .. ..@ Volume             : num 0.00537
     ##   .. .. .. ..@ PointDensity       : num 10050413
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.3 25.3 25.3 25.3 25.3 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.3 25.3 25.4 25.4 25.4 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
@@ -3370,7 +3395,7 @@ str(test)
     ##   .. .. .. ..@ Volume             : num 0.0106
     ##   .. .. .. ..@ PointDensity       : num 5109528
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.3 25.3 25.4 25.4 25.2 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.3 25.4 25.4 25.4 25.3 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
@@ -3380,53 +3405,53 @@ str(test)
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.00286
-    ##   .. .. .. ..@ PointDensity       : num 10357076
+    ##   .. .. .. ..@ Volume             : num 0.00279
+    ##   .. .. .. ..@ PointDensity       : num 10466636
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:29585, 1:3] 25.2 25.4 25.4 25.2 25.4 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:29224, 1:3] 25.4 25.3 25.3 25.3 25.3 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:29585] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:29224] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Union       :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Union of (Convex expectation for structure(c(25.511185, 25.525606, 25.346043, 25.281542, 25.349791, , Convex ex"| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
     ##   .. .. .. ..@ Volume             : num 0.0131
-    ##   .. .. .. ..@ PointDensity       : num 5079286
+    ##   .. .. .. ..@ PointDensity       : num 5056826
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:66399, 1:3] 25.3 25.4 25.3 25.3 25.1 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:66431, 1:3] 25.2 25.5 25.4 25.2 25.2 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:66399] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:66431] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Unique_1    :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Unique component of (Convex expectation for structure(c(25.511185, 25.525606, 25.346043, 25.281542, 25.349791, "| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.00251
+    ##   .. .. .. ..@ Volume             : num 0.00258
     ##   .. .. .. ..@ PointDensity       : num 5109397
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:12836, 1:3] 25.3 25.4 25.3 25.3 25.1 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:13165, 1:3] 25.2 25.5 25.4 25.2 25.2 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:12836] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:13165] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Unique_2    :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Unique component of (Convex expectation for structure(c(25.059107, 25.185759, 25.236544, 25.3286, 25.387087, ) "| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.0077
-    ##   .. .. .. ..@ PointDensity       : num 5058302
+    ##   .. .. .. ..@ Volume             : num 0.00777
+    ##   .. .. .. ..@ PointDensity       : num 5020493
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:38968, 1:3] 25.3 25.4 25.4 25.2 25.4 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:39000, 1:3] 25.4 25.2 25.3 25.3 25.3 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:38968] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:39000] 1 1 1 1 1 1 1 1 1 1 ...
 
 ``` r
 myvol <- test@HVList$Intersection@Volume
