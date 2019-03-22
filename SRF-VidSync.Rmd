@@ -592,17 +592,11 @@ bind_rows(RoachRun_DistPerTime_Pre, RoachRun_DistPerTime_Post, GolfBall_DistPerT
   select(date, BACI_date, sample_event, site, species, subsample, index, DistPerTime_Median, DistPerTime_Mean)
 MovementPerTime_Data
 ```
-###Distance to Forage Attempt (DFA)
-Finding the centroid point then looking at the average distance to each subsequent point taken in the subsample and taking the average.
-
-####Pre-Augmentation
+###Maximum Number of Fish in Each Subsample
 ```{r}
 
 ```
-####Post-Augmentation
-```{r}
 
-```
 ###Proportion of Forage Types
 Breaking down the proportion of each type of forage event and how it changes throughout the study period.
 
@@ -655,16 +649,16 @@ Normalized_Forage_Types_Plot <-
   scale_fill_discrete(name = "Foraging Mode")
 Normalized_Forage_Types_Plot
 ```
-####Post-Augmentation
-```{r}
-
-```
 ###Volume Occupied
 Using Delaunay Triangulation to calculate the volume each fish is occupying during each subsample.
 
 ####Importing Final Volume CSV
 ```{r}
-
+SRF_Volume_Dataset <- 
+  readr::read_csv(file = "Vidsync-data/BACI Fish Volume Data - SRF-Volumes.csv",
+                  col_names = TRUE) %>% 
+  select(stream, reach, date, event, pool, fish_species, unique_ID, subsample, index, fish_length_mm, num_fish_in_subsample, volume_occupied_all_cm3, volume_occupied_forage_cm3, points_in_sample, repeat_index)
+SRF_Volume_Dataset
 ```
 
 ####Pre-Augmentation: All Behaviors
@@ -815,8 +809,6 @@ for (i in 1:6) {
     print()
 }
 
-
-
 HalfTire_Volume_Post <- HalfTire_VidSync_Post %>%
   arrange(objects) %>%
   filter(!grepl("Surface_Shots.*", objects)) %>%
@@ -908,6 +900,28 @@ for (i in 1:16) {
     convhulln("FA") %>%
     print()
 }
+
+RoachRun_Volume_Post <- RoachRun_VidSync_Post %>% 
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:33) {
+  RoachRun_Volume_Post %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
 ```
 ####Pre-Augmentation: Foraging Modes
 ```{r}
@@ -938,7 +952,7 @@ for (i in a) {
     print()
 }
 
-HalfTire_Volume_Pre <- HalfTire_VidSync_Pre %>%
+HalfTire_Volume_Forage_Pre <- HalfTire_VidSync_Pre %>%
   arrange(objects) %>%
   filter(!grepl("Surface_Shots.*", objects)) %>%
   filter(!grepl("^Length.*", event)) %>%
@@ -1036,6 +1050,164 @@ for (i in 1:13) {
     next
   }
   JesusToast_Volume_Forage_Pre %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+```
+
+####Post-Augmentation: Foraging Modes
+```{r}
+GolfBall_Volume_Forage_Post <- GolfBall_VidSync_Post %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+HalfTire_Volume_Forage_Post <- HalfTire_VidSync_Post %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:48) {
+  if (i == 6) {
+    next
+  }
+  if (i == 8) {
+    next
+  }
+  if (i == 12) {
+    next
+  }
+  if (i == 23) {
+    next
+  }
+  if (i == 32) {
+    next
+  }
+  if (i == 39) {
+    next
+  }
+  if (i == 40) {
+    next
+  }
+  if (i == 41) {
+    next
+  }
+  HalfTire_Volume_Forage_Post %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+
+RoachRun_Volume_Forage_Post <- RoachRun_VidSync_Post %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:33) {
+  if (i == 2) {
+    next
+  }
+  if (i == 6) {
+    next
+  }
+  RoachRun_Volume_Forage_Post %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+
+JesusToast_Volume_Forage_Post <- JesusToast_VidSync_Post %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:16) {
+  if (i == 1) {
+    next
+  }
+  if (i == 3) {
+    next
+  }
+  if (i == 6) {
+    next
+  }
+  if (i == 8) {
+    next
+  }
+  if (i == 9) {
+    next
+  }
+  if (i == 10) {
+    next
+  }
+  if (i == 11) {
+    next
+  }
+  if (i == 12) {
+    next
+  }
+  if (i == 14) {
+    next
+  }
+  if (i == 16) {
+    next
+  }
+  JesusToast_Volume_Forage_Post %>%
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
