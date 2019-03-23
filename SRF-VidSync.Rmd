@@ -594,7 +594,18 @@ MovementPerTime_Data
 ```
 ###Maximum Number of Fish in Each Subsample
 ```{r}
-
+Max_Fish_Tally_Dataset <- 
+  bind_rows(RoachRun_VidSync_Pre, RoachRun_VidSync_Post, GolfBall_VidSync_Pre, GolfBall_VidSync_Post, HalfTire_VidSync_Pre, HalfTire_VidSync_Post, JesusToast_VidSync_Pre, JesusToast_VidSync_Post) %>% 
+  filter(grepl("^Subsample.*", objects)) %>% 
+  filter(!grepl("^Length.*", event)) %>% 
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>% 
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>% 
+  mutate(one_col = 1) %>% 
+  select(one_col, date, BACI_date, site, sample_event, subsample, index, time) %>% 
+  arrange(site, sample_event, subsample, time) %>% 
+  group_by(sample_event, site, subsample, time) %>% 
+  mutate(max_time_tally = sum(one_col)) 
+Max_Fish_Tally_Dataset
 ```
 
 ###Proportion of Forage Types
@@ -606,7 +617,6 @@ Behavior_Types_Dataset <-
   bind_rows(RoachRun_VidSync_Pre, RoachRun_VidSync_Post, GolfBall_VidSync_Pre, GolfBall_VidSync_Post, HalfTire_VidSync_Pre, HalfTire_VidSync_Post, JesusToast_VidSync_Pre, JesusToast_VidSync_Post) %>%
   filter(grepl("^Subsample.*", objects)) %>%
   filter(!grepl("^Length.*", event)) %>%
-  select(date, BACI_date, site, sample_event, objects, event, time) %>%
   arrange(BACI_date, site, time) %>%
   group_by(sample_event, site) %>% 
   mutate(Behaviors = if_else(grepl("^Drift_Forage", event), "Drift Forage", if_else(grepl("^Search_Forage", event), "Search Forage", if_else(grepl("^Search_Forage", event), "Search Forage", if_else(grepl("^Benthic_Forage", event), "Benthic Forage", if_else(grepl("Nip|Attack", event), "Attack", if_else(grepl("^Surface_Strike", event), "Surface Strike", if_else(grepl("^Movement", event), "Movement", "NA")))))))) %>% 
@@ -657,7 +667,7 @@ Using Delaunay Triangulation to calculate the volume each fish is occupying duri
 SRF_Volume_Dataset <- 
   readr::read_csv(file = "Vidsync-data/BACI Fish Volume Data - SRF-Volumes.csv",
                   col_names = TRUE) %>% 
-  select(stream, reach, date, event, pool, fish_species, unique_ID, subsample, index, fish_length_mm, num_fish_in_subsample, volume_occupied_all_cm3, volume_occupied_forage_cm3, points_in_sample, repeat_index)
+  select(stream, reach, date, event, pool, fish_species, subsample, index, fish_length_mm, num_fish_in_subsample, volume_occupied_all_cm3, volume_occupied_forage_cm3, points_in_sample, repeat_index)
 SRF_Volume_Dataset
 ```
 
@@ -683,7 +693,6 @@ for (i in 1:13) {
   if (i == 10) {
     next
   }
-  GB_Pre_Filename <- paste("GB_Vol_Pre_", toString(i), sep = "")
   GolfBall_Volume_Pre %>%
     filter(index == i) %>%
     select(X, Y, Z) %>%
