@@ -684,8 +684,10 @@ Fish_Dataset <- Behavior_Types_Dataset %>%
   left_join(SRF_Volume_Dataset, by = c("date", "site", "sample_event", "species", "subsample", "index")) %>% 
   left_join(MovementPerTime_Data, by = c("date", "BACI_date", "site", "sample_event", "species", "subsample", "index")) %>% 
   left_join(nnd_data, by = c("date", "BACI_date", "site", "sample_event", "subsample", "index")) %>% 
-  select(date, BACI_date, site, sample_event, species, subsample, index, time, Behaviors, max_time_tally, DistPerTime_Median, DistPerTime_Mean, mean_nnd, median_nnd, fish_length_mm, num_fish_in_subsample, volume_occupied_all_cm3, volume_occupied_forage_cm3, points_in_sample, repeat_index)
+  select(date, BACI_date, site, sample_event, species, subsample, index, time, Behaviors, max_time_tally, DistPerTime_Median, DistPerTime_Mean, mean_nnd, median_nnd, fish_length_mm, num_fish_in_subsample, volume_occupied_all_cm3, volume_occupied_forage_cm3, points_in_sample, repeat_index) 
 Fish_Dataset
+
+write_csv(x = Fish_Dataset, path = "SRF_Fish.csv")
 ```
 
 ###Volume Dataset Calculations
