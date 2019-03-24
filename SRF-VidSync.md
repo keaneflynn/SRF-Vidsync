@@ -29,13 +29,13 @@ library(readr)
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ───────────────────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
     ## ✔ tibble  1.4.2     ✔ stringr 1.3.1
     ## ✔ tidyr   0.8.1     ✔ forcats 0.3.0
 
-    ## ── Conflicts ──────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
@@ -472,7 +472,7 @@ nnd_GolfBall_Post <- GolfBall_VidSync_Post %>%
   mutate(date = as.Date("2018-07-06")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
   mutate(site = "18.3") %>%
-  mutate(sample_event = "Before") 
+  mutate(sample_event = "After") 
 
 nnd_HalfTire_Post <- HalfTire_VidSync_Post %>%
   ungroup() %>%
@@ -500,7 +500,7 @@ nnd_HalfTire_Post <- HalfTire_VidSync_Post %>%
   mutate(date = as.Date("2018-07-05")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
   mutate(site = "18.8") %>%
-  mutate(sample_event = "Before")  
+  mutate(sample_event = "After")   
 
 nnd_RoachRun_Post <- RoachRun_VidSync_Post %>%
   ungroup() %>%
@@ -528,7 +528,7 @@ nnd_RoachRun_Post <- RoachRun_VidSync_Post %>%
   mutate(date = as.Date("2018-07-05")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
   mutate(site = "18.5") %>%
-  mutate(sample_event = "Before") 
+  mutate(sample_event = "After")  
 
 nnd_JesusToast_Post <- JesusToast_VidSync_Post %>%
   ungroup() %>%
@@ -556,7 +556,7 @@ nnd_JesusToast_Post <- JesusToast_VidSync_Post %>%
   mutate(date = as.Date("2018-07-06")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
   mutate(site = "18.2") %>%
-  mutate(event = "After")
+  mutate(sample_event = "After") 
 
 nnd_data <- 
   bind_rows(nnd_RoachRun_Pre, nnd_RoachRun_Post, nnd_GolfBall_Pre, nnd_GolfBall_Post, nnd_HalfTire_Pre, nnd_HalfTire_Post, nnd_JesusToast_Pre, nnd_JesusToast_Post) %>%
@@ -577,7 +577,7 @@ nnd_data
     ##  7 2018-06-29 2018-06-29 Before       18.5          5    15  37.8   
     ##  8 2018-06-29 2018-06-29 Before       18.5          6    18  41.4   
     ##  9 2018-06-29 2018-06-29 Before       18.5          6    19  32.0   
-    ## 10 2018-07-05 2018-07-05 Before       18.5          1     3   3.77  
+    ## 10 2018-07-05 2018-07-05 After        18.5          1     3   3.77  
     ## # ... with 67 more rows, and 1 more variable: median_nnd <dbl>
 
 ### Distance Travelled per Time (cm/s)
@@ -713,7 +713,7 @@ GolfBall_DistPerTime_Post <- GolfBall_VidSync_Post %>%
   mutate(date = as.Date("2018-07-06")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
   mutate(site = "18.3") %>%
-  mutate(sample_event = "Before") %>%
+  mutate(sample_event = "After")  %>%
   group_by(index) %>%
   mutate(distance_cm_per_sec = fish_distance_travelled_cm /(time - lag(time, default = first(time)))) %>%
   filter(!distance_cm_per_sec == Inf) %>%
@@ -740,7 +740,7 @@ RoachRun_DistPerTime_Post <- RoachRun_VidSync_Post %>%
   mutate(date = as.Date("2018-07-05")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
   mutate(site = "18.5") %>%
-  mutate(sample_event = "Before")  %>%
+  mutate(sample_event = "After")  %>%
   group_by(index) %>%
   mutate(distance_cm_per_sec = fish_distance_travelled_cm /(time - lag(time, default = first(time)))) %>%
   filter(!distance_cm_per_sec == Inf) %>%
@@ -766,7 +766,7 @@ HalfTire_DistPerTime_Post <- HalfTire_VidSync_Post %>%
   mutate(date = as.Date("2018-07-05")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
   mutate(site = "18.8") %>%
-  mutate(sample_event = "Before") %>%
+  mutate(sample_event = "After")  %>%
   group_by(index) %>%
   mutate(distance_cm_per_sec = fish_distance_travelled_cm /(time - lag(time, default = first(time)))) %>%
   filter(!distance_cm_per_sec == Inf) %>%
@@ -792,7 +792,7 @@ JesusToast_DistPerTime_Post <- JesusToast_VidSync_Post %>%
   mutate(date = as.Date("2018-07-06")) %>%
   mutate(BACI_date = as.Date("2018-07-05")) %>%
   mutate(site = "18.2") %>%
-  mutate(sample_event = "Before") %>%
+  mutate(sample_event = "After")  %>%
   group_by(index) %>%
   mutate(distance_cm_per_sec = fish_distance_travelled_cm /(time - lag(time, default = first(time)))) %>%
   filter(!distance_cm_per_sec == Inf) %>%
@@ -962,30 +962,35 @@ Fish_Dataset <- Behavior_Types_Dataset %>%
   left_join(SRF_Volume_Dataset, by = c("date", "site", "sample_event", "species", "subsample", "index")) %>% 
   left_join(MovementPerTime_Data, by = c("date", "BACI_date", "site", "sample_event", "species", "subsample", "index")) %>% 
   left_join(nnd_data, by = c("date", "BACI_date", "site", "sample_event", "subsample", "index")) %>% 
-  select(date, BACI_date, site, sample_event, species, subsample, index, time, Behaviors, max_time_tally, DistPerTime_Median, DistPerTime_Mean, mean_nnd, median_nnd, fish_length_mm, num_fish_in_subsample, volume_occupied_all_cm3, volume_occupied_forage_cm3, points_in_sample, repeat_index)
+  select(date, BACI_date, sample_event, site, species, subsample, index, time, Behaviors, max_time_tally, DistPerTime_Median, DistPerTime_Mean, mean_nnd, median_nnd, fish_length_mm, num_fish_in_subsample, volume_occupied_all_cm3, volume_occupied_forage_cm3, points_in_sample, repeat_index) %>% 
+  arrange(BACI_date, sample_event, site, subsample, index, time)
 Fish_Dataset
 ```
 
     ## # A tibble: 1,205 x 20
     ## # Groups:   sample_event, site [8]
-    ##    date       BACI_date  site  sample_event species subsample index  time
-    ##    <date>     <date>     <chr> <chr>        <chr>       <dbl> <dbl> <dbl>
-    ##  1 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     1  510.
-    ##  2 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     1  513.
-    ##  3 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     1  516.
-    ##  4 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     1  519.
-    ##  5 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     1  522.
-    ##  6 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     5  528.
-    ##  7 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     5  531.
-    ##  8 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     5  534.
-    ##  9 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     1  534.
-    ## 10 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     1  537.
+    ##    date       BACI_date  sample_event site  species subsample index  time
+    ##    <date>     <date>     <chr>        <chr> <chr>       <dbl> <dbl> <dbl>
+    ##  1 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  510.
+    ##  2 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  513.
+    ##  3 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  516.
+    ##  4 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  519.
+    ##  5 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  522.
+    ##  6 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  534.
+    ##  7 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  537.
+    ##  8 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5  528.
+    ##  9 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5  531.
+    ## 10 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5  534.
     ## # ... with 1,195 more rows, and 12 more variables: Behaviors <chr>,
     ## #   max_time_tally <dbl>, DistPerTime_Median <dbl>,
     ## #   DistPerTime_Mean <dbl>, mean_nnd <dbl>, median_nnd <dbl>,
     ## #   fish_length_mm <dbl>, num_fish_in_subsample <dbl>,
     ## #   volume_occupied_all_cm3 <dbl>, volume_occupied_forage_cm3 <dbl>,
     ## #   points_in_sample <dbl>, repeat_index <dbl>
+
+``` r
+write_csv(x = Fish_Dataset, path = "SRF_Fish.csv")
+```
 
 ### Volume Dataset Calculations
 
@@ -6363,7 +6368,7 @@ str(test)
     ##   .. .. .. ..@ Volume             : num 0.00537
     ##   .. .. .. ..@ PointDensity       : num 10050413
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.3 25.3 25.4 25.2 25.3 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.4 25.3 25.3 25.4 25.4 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
@@ -6379,7 +6384,7 @@ str(test)
     ##   .. .. .. ..@ Volume             : num 0.0106
     ##   .. .. .. ..@ PointDensity       : num 5109528
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.2 25.2 25.3 25.2 25.2 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.3 25.3 25.3 25.3 25.3 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
@@ -6389,53 +6394,53 @@ str(test)
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.00289
-    ##   .. .. .. ..@ PointDensity       : num 10339729
+    ##   .. .. .. ..@ Volume             : num 0.00285
+    ##   .. .. .. ..@ PointDensity       : num 10343765
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:29839, 1:3] 25.3 25.4 25.3 25.4 25.3 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:29466, 1:3] 25.3 25.3 25.3 25.2 25.2 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:29839] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:29466] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Union       :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Union of (Convex expectation for structure(c(25.511185, 25.525606, 25.346043, 25.281542, 25.349791, , Convex ex"| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.013
-    ##   .. .. .. ..@ PointDensity       : num 5082745
+    ##   .. .. .. ..@ Volume             : num 0.0131
+    ##   .. .. .. ..@ PointDensity       : num 5082286
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:66295, 1:3] 25.2 25.5 25.4 25.4 25.5 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:66478, 1:3] 25.4 25.4 25.4 25.4 25.4 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:66295] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:66478] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Unique_1    :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Unique component of (Convex expectation for structure(c(25.511185, 25.525606, 25.346043, 25.281542, 25.349791, "| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.00248
+    ##   .. .. .. ..@ Volume             : num 0.00252
     ##   .. .. .. ..@ PointDensity       : num 5109397
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:12686, 1:3] 25.2 25.5 25.4 25.4 25.5 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:12876, 1:3] 25.4 25.4 25.4 25.4 25.4 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:12686] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:12876] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Unique_2    :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Unique component of (Convex expectation for structure(c(25.059107, 25.185759, 25.236544, 25.3286, 25.387087, ) "| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.00767
-    ##   .. .. .. ..@ PointDensity       : num 5064101
+    ##   .. .. .. ..@ Volume             : num 0.00771
+    ##   .. .. .. ..@ PointDensity       : num 5063411
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:38864, 1:3] 25.3 25.3 25.4 25.4 25.3 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:39047, 1:3] 25.4 25.3 25.2 25.3 25.4 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:38864] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:39047] 1 1 1 1 1 1 1 1 1 1 ...
 
 ``` r
 myvol <- test@HVList$Intersection@Volume
