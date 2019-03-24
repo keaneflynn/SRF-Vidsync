@@ -598,13 +598,15 @@ Max_Fish_Tally_Dataset <-
   bind_rows(RoachRun_VidSync_Pre, RoachRun_VidSync_Post, GolfBall_VidSync_Pre, GolfBall_VidSync_Post, HalfTire_VidSync_Pre, HalfTire_VidSync_Post, JesusToast_VidSync_Pre, JesusToast_VidSync_Post) %>% 
   filter(grepl("^Subsample.*", objects)) %>% 
   filter(!grepl("^Length.*", event)) %>% 
+   mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>% 
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>% 
   mutate(one_col = 1) %>% 
-  select(one_col, date, BACI_date, site, sample_event, subsample, index, time) %>% 
   arrange(site, sample_event, subsample, time) %>% 
-  group_by(sample_event, site, subsample, time) %>% 
-  mutate(max_time_tally = sum(one_col)) 
+  group_by(sample_event, site, time) %>% 
+  mutate(max_time_tally = sum(one_col)) %>%
+  distinct(time, .keep_all = TRUE) %>%
+  select(date, BACI_date, site, sample_event, species, subsample, index, time, max_time_tally)
 Max_Fish_Tally_Dataset
 ```
 
@@ -624,7 +626,7 @@ Behavior_Types_Dataset <-
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
   mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   filter(!species == "Omykiss | Okisutch") %>% 
-  select(BACI_date, site, sample_event, species, subsample, index, Behaviors) 
+  select(BACI_date, date, site, sample_event, species, subsample, index, time, Behaviors) 
 
 Forage_Types <- Behavior_Types_Dataset %>%
   group_by(site, sample_event) %>% 
@@ -659,17 +661,34 @@ Normalized_Forage_Types_Plot <-
   scale_fill_discrete(name = "Foraging Mode")
 Normalized_Forage_Types_Plot
 ```
-###Volume Occupied
+###Volume Occupied Dataset
 Using Delaunay Triangulation to calculate the volume each fish is occupying during each subsample.
 
 ####Importing Final Volume CSV
 ```{r}
 SRF_Volume_Dataset <- 
   readr::read_csv(file = "Vidsync-data/BACI Fish Volume Data - SRF-Volumes.csv",
-                  col_names = TRUE) %>% 
-  select(stream, reach, date, event, pool, fish_species, subsample, index, fish_length_mm, num_fish_in_subsample, volume_occupied_all_cm3, volume_occupied_forage_cm3, points_in_sample, repeat_index)
+                  col_names = TRUE,
+                  col_types = "ccccDcdddddddddddc") %>% 
+  setnames(old = "event", new = "sample_event") %>% 
+  setnames(old = "pool", new = "site") %>%
+  setnames(old = "fish_species", new = "species") %>%
+  select(stream, reach, date, sample_event, site, species, subsample, index, fish_length_mm, num_fish_in_subsample, volume_occupied_all_cm3, volume_occupied_forage_cm3, points_in_sample, repeat_index) %>% 
+  filter(!species == "Hsymmetricus")
 SRF_Volume_Dataset
 ```
+##Final Dataset Creation
+```{r}
+Fish_Dataset <- Behavior_Types_Dataset %>% 
+  left_join(Max_Fish_Tally_Dataset, by = c("date", "BACI_date", "site", "sample_event", "species", "subsample", "index", "time")) %>% 
+  left_join(SRF_Volume_Dataset, by = c("date", "site", "sample_event", "species", "subsample", "index")) %>% 
+  left_join(MovementPerTime_Data, by = c("date", "BACI_date", "site", "sample_event", "species", "subsample", "index")) %>% 
+  left_join(nnd_data, by = c("date", "BACI_date", "site", "sample_event", "subsample", "index")) %>% 
+  select(date, BACI_date, site, sample_event, species, subsample, index, time, Behaviors, max_time_tally, DistPerTime_Median, DistPerTime_Mean, mean_nnd, median_nnd, fish_length_mm, num_fish_in_subsample, volume_occupied_all_cm3, volume_occupied_forage_cm3, points_in_sample, repeat_index)
+Fish_Dataset
+```
+
+###Volume Dataset Calculations
 
 ####Pre-Augmentation: All Behaviors
 ```{r}
@@ -1233,22 +1252,21 @@ expectation_convex
 get_volume
 get_centroid
 
-
 ####Pre-Augmentation
 ```{r}
-for (i in 1:13) {
-  if (i == 3) {
-      next
-    }
-  if (i == 10) {
-      next
-    }
-    GolfBall_Volume_Pre %>%
-      filter(index == i) %>%
-      select(X, Y, Z) %>%
-      expectation_convex(check.memory = FALSE) %>%
-      print()
-  }
+#for (i in 1:13) {
+ # if (i == 3) {
+  #    next
+   # }
+  #if (i == 10) {
+   #   next
+  #  }
+   # GolfBall_Volume_Pre %>%
+    #  filter(index == i) %>%
+     # select(X, Y, Z) %>%
+    #  expectation_convex(check.memory = FALSE) %>%
+    #  print()
+#  }
 
 #look into making a function or creating a list (i.e. list1 = c(HV1, HV2, HV3, etc.) for each forloop scenario)
 

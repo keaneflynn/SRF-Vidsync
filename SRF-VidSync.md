@@ -29,13 +29,13 @@ library(readr)
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ────────────────────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ───────────────────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
     ## ✔ tibble  1.4.2     ✔ stringr 1.3.1
     ## ✔ tidyr   0.8.1     ✔ forcats 0.3.0
 
-    ## ── Conflicts ───────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ──────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
@@ -825,13 +825,40 @@ MovementPerTime_Data
     ## # ... with 138 more rows, and 2 more variables: DistPerTime_Median <dbl>,
     ## #   DistPerTime_Mean <dbl>
 
-### Distance to Forage Attempt (DFA)
+### Maximum Number of Fish in Each Subsample
 
-Finding the centroid point then looking at the average distance to each subsequent point taken in the subsample and taking the average.
+``` r
+Max_Fish_Tally_Dataset <- 
+  bind_rows(RoachRun_VidSync_Pre, RoachRun_VidSync_Post, GolfBall_VidSync_Pre, GolfBall_VidSync_Post, HalfTire_VidSync_Pre, HalfTire_VidSync_Post, JesusToast_VidSync_Pre, JesusToast_VidSync_Post) %>% 
+  filter(grepl("^Subsample.*", objects)) %>% 
+  filter(!grepl("^Length.*", event)) %>% 
+   mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  mutate(subsample = as.numeric(str_extract(objects, "\\d"))) %>% 
+  mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>% 
+  mutate(one_col = 1) %>% 
+  arrange(site, sample_event, subsample, time) %>% 
+  group_by(sample_event, site, time) %>% 
+  mutate(max_time_tally = sum(one_col)) %>%
+  distinct(time, .keep_all = TRUE) %>%
+  select(date, BACI_date, site, sample_event, species, subsample, index, time, max_time_tally)
+Max_Fish_Tally_Dataset
+```
 
-#### Pre-Augmentation
-
-#### Post-Augmentation
+    ## # A tibble: 492 x 9
+    ## # Groups:   sample_event, site, time [492]
+    ##    date       BACI_date  site  sample_event species subsample index  time
+    ##    <date>     <date>     <chr> <chr>        <chr>       <dbl> <dbl> <dbl>
+    ##  1 2018-07-06 2018-07-05 18.2  After        Omykiss         1     1   450
+    ##  2 2018-07-06 2018-07-05 18.2  After        Omykiss         1     1   453
+    ##  3 2018-07-06 2018-07-05 18.2  After        Omykiss         1     1   456
+    ##  4 2018-07-06 2018-07-05 18.2  After        Omykiss         1     2   459
+    ##  5 2018-07-06 2018-07-05 18.2  After        Omykiss         1     2   462
+    ##  6 2018-07-06 2018-07-05 18.2  After        Omykiss         1     2   465
+    ##  7 2018-07-06 2018-07-05 18.2  After        Omykiss         1     2   468
+    ##  8 2018-07-06 2018-07-05 18.2  After        Omykiss         1     2   471
+    ##  9 2018-07-06 2018-07-05 18.2  After        Omykiss         1     4   474
+    ## 10 2018-07-06 2018-07-05 18.2  After        Omykiss         1     4   480
+    ## # ... with 482 more rows, and 1 more variable: max_time_tally <dbl>
 
 ### Proportion of Forage Types
 
@@ -844,7 +871,6 @@ Behavior_Types_Dataset <-
   bind_rows(RoachRun_VidSync_Pre, RoachRun_VidSync_Post, GolfBall_VidSync_Pre, GolfBall_VidSync_Post, HalfTire_VidSync_Pre, HalfTire_VidSync_Post, JesusToast_VidSync_Pre, JesusToast_VidSync_Post) %>%
   filter(grepl("^Subsample.*", objects)) %>%
   filter(!grepl("^Length.*", event)) %>%
-  select(date, BACI_date, site, sample_event, objects, event, time) %>%
   arrange(BACI_date, site, time) %>%
   group_by(sample_event, site) %>% 
   mutate(Behaviors = if_else(grepl("^Drift_Forage", event), "Drift Forage", if_else(grepl("^Search_Forage", event), "Search Forage", if_else(grepl("^Search_Forage", event), "Search Forage", if_else(grepl("^Benthic_Forage", event), "Benthic Forage", if_else(grepl("Nip|Attack", event), "Attack", if_else(grepl("^Surface_Strike", event), "Surface Strike", if_else(grepl("^Movement", event), "Movement", "NA")))))))) %>% 
@@ -852,7 +878,7 @@ Behavior_Types_Dataset <-
   mutate(index = as.numeric(str_extract(objects, "\\h\\d{1,2}"))) %>%
   mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
   filter(!species == "Omykiss | Okisutch") %>% 
-  select(BACI_date, site, sample_event, species, subsample, index, Behaviors) 
+  select(BACI_date, date, site, sample_event, species, subsample, index, time, Behaviors) 
 
 Forage_Types <- Behavior_Types_Dataset %>%
   group_by(site, sample_event) %>% 
@@ -879,7 +905,7 @@ Forage_Types_Plot <-
 Forage_Types_Plot
 ```
 
-![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-11-1.png)
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-10-1.png)
 
 ``` r
 Normalized_Forage_Types_Plot <- 
@@ -892,15 +918,78 @@ Normalized_Forage_Types_Plot <-
 Normalized_Forage_Types_Plot
 ```
 
-![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-11-2.png) \#\#\#\#Post-Augmentation
-
-### Volume Occupied
-
-Using Delaunay Triangulation to calculate the volume each fish is occupying during each subsample.
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-10-2.png) \#\#\#Volume Occupied Dataset Using Delaunay Triangulation to calculate the volume each fish is occupying during each subsample.
 
 #### Importing Final Volume CSV
 
-#### Pre-Augmentation
+``` r
+SRF_Volume_Dataset <- 
+  readr::read_csv(file = "Vidsync-data/BACI Fish Volume Data - SRF-Volumes.csv",
+                  col_names = TRUE,
+                  col_types = "ccccDcdddddddddddc") %>% 
+  setnames(old = "event", new = "sample_event") %>% 
+  setnames(old = "pool", new = "site") %>%
+  setnames(old = "fish_species", new = "species") %>%
+  select(stream, reach, date, sample_event, site, species, subsample, index, fish_length_mm, num_fish_in_subsample, volume_occupied_all_cm3, volume_occupied_forage_cm3, points_in_sample, repeat_index) %>% 
+  filter(!species == "Hsymmetricus")
+SRF_Volume_Dataset
+```
+
+    ## # A tibble: 145 x 14
+    ##    stream reach date       sample_event site  species subsample index
+    ##    <chr>  <chr> <date>     <chr>        <chr> <chr>       <dbl> <dbl>
+    ##  1 Porter BACI  2018-06-29 Before       18.5  Omykiss         1     1
+    ##  2 Porter BACI  2018-06-29 Before       18.5  Omykiss         1     2
+    ##  3 Porter BACI  2018-06-29 Before       18.5  Omykiss         1     4
+    ##  4 Porter BACI  2018-06-29 Before       18.5  Omykiss         2     5
+    ##  5 Porter BACI  2018-06-29 Before       18.5  Omykiss         2     6
+    ##  6 Porter BACI  2018-06-29 Before       18.5  Omykiss         2     7
+    ##  7 Porter BACI  2018-06-29 Before       18.5  Omykiss         3     8
+    ##  8 Porter BACI  2018-06-29 Before       18.5  Omykiss         3     9
+    ##  9 Porter BACI  2018-06-29 Before       18.5  Okisut…         3    10
+    ## 10 Porter BACI  2018-06-29 Before       18.5  Omykiss         4    11
+    ## # ... with 135 more rows, and 6 more variables: fish_length_mm <dbl>,
+    ## #   num_fish_in_subsample <dbl>, volume_occupied_all_cm3 <dbl>,
+    ## #   volume_occupied_forage_cm3 <dbl>, points_in_sample <dbl>,
+    ## #   repeat_index <dbl>
+
+Final Dataset Creation
+----------------------
+
+``` r
+Fish_Dataset <- Behavior_Types_Dataset %>% 
+  left_join(Max_Fish_Tally_Dataset, by = c("date", "BACI_date", "site", "sample_event", "species", "subsample", "index", "time")) %>% 
+  left_join(SRF_Volume_Dataset, by = c("date", "site", "sample_event", "species", "subsample", "index")) %>% 
+  left_join(MovementPerTime_Data, by = c("date", "BACI_date", "site", "sample_event", "species", "subsample", "index")) %>% 
+  left_join(nnd_data, by = c("date", "BACI_date", "site", "sample_event", "subsample", "index")) %>% 
+  select(date, BACI_date, site, sample_event, species, subsample, index, time, Behaviors, max_time_tally, DistPerTime_Median, DistPerTime_Mean, mean_nnd, median_nnd, fish_length_mm, num_fish_in_subsample, volume_occupied_all_cm3, volume_occupied_forage_cm3, points_in_sample, repeat_index)
+Fish_Dataset
+```
+
+    ## # A tibble: 1,205 x 20
+    ## # Groups:   sample_event, site [8]
+    ##    date       BACI_date  site  sample_event species subsample index  time
+    ##    <date>     <date>     <chr> <chr>        <chr>       <dbl> <dbl> <dbl>
+    ##  1 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     1  510.
+    ##  2 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     1  513.
+    ##  3 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     1  516.
+    ##  4 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     1  519.
+    ##  5 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     1  522.
+    ##  6 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     5  528.
+    ##  7 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     5  531.
+    ##  8 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     5  534.
+    ##  9 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     1  534.
+    ## 10 2018-06-30 2018-06-29 18.2  Before       Omykiss         1     1  537.
+    ## # ... with 1,195 more rows, and 12 more variables: Behaviors <chr>,
+    ## #   max_time_tally <dbl>, DistPerTime_Median <dbl>,
+    ## #   DistPerTime_Mean <dbl>, mean_nnd <dbl>, median_nnd <dbl>,
+    ## #   fish_length_mm <dbl>, num_fish_in_subsample <dbl>,
+    ## #   volume_occupied_all_cm3 <dbl>, volume_occupied_forage_cm3 <dbl>,
+    ## #   points_in_sample <dbl>, repeat_index <dbl>
+
+### Volume Dataset Calculations
+
+#### Pre-Augmentation: All Behaviors
 
 ``` r
 GolfBall_Volume_Pre <- GolfBall_VidSync_Pre %>%
@@ -923,7 +1012,6 @@ for (i in 1:13) {
   if (i == 10) {
     next
   }
-  GB_Pre_Filename <- paste("GB_Vol_Pre_", toString(i), sep = "")
   GolfBall_Volume_Pre %>%
     filter(index == i) %>%
     select(X, Y, Z) %>%
@@ -1848,7 +1936,7 @@ for (i in 1:13) {
     ## $vol
     ## [1] 284.935
 
-#### Post-Augmentation
+#### Post-Augmentation: All Behaviors
 
 ``` r
 GolfBall_Volume_Post <- GolfBall_VidSync_Post %>%
@@ -3078,6 +3166,3114 @@ for (i in 1:16) {
     ## $vol
     ## [1] 2277.661
 
+``` r
+RoachRun_Volume_Post <- RoachRun_VidSync_Post %>% 
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:33) {
+  RoachRun_Volume_Post %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+```
+
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    4    1   10
+    ##  [2,]    9    4    1
+    ##  [3,]    3    6   10
+    ##  [4,]    3    4   10
+    ##  [5,]    8    6   10
+    ##  [6,]    8    9   10
+    ##  [7,]    8    9    6
+    ##  [8,]   11    1   10
+    ##  [9,]   11    9   10
+    ## [10,]   11    9    1
+    ## [11,]    7    3    6
+    ## [12,]    7    3    4
+    ## [13,]    7    9    6
+    ## [14,]    7    9    4
+    ## 
+    ## $area
+    ## [1] 131.3419
+    ## 
+    ## $vol
+    ## [1] 76.84104
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    7    4    5
+    ##  [2,]    1    4    5
+    ##  [3,]    1    7    5
+    ##  [4,]    3    7    4
+    ##  [5,]    2    1    4
+    ##  [6,]    2    3    4
+    ##  [7,]    2    3    1
+    ##  [8,]    6    1    7
+    ##  [9,]    6    3    7
+    ## [10,]    6    3    1
+    ## 
+    ## $area
+    ## [1] 1142.574
+    ## 
+    ## $vol
+    ## [1] 1817.855
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    4    2    1
+    ##  [2,]    3    4    1
+    ##  [3,]    6    2    1
+    ##  [4,]    6    2   10
+    ##  [5,]    6    3    1
+    ##  [6,]    6    3   10
+    ##  [7,]    8    2   10
+    ##  [8,]    8    4    2
+    ##  [9,]    9    8   10
+    ## [10,]    9    8    4
+    ## [11,]    9    3   10
+    ## [12,]    9    3    4
+    ## 
+    ## $area
+    ## [1] 963.769
+    ## 
+    ## $vol
+    ## [1] 797.5841
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    5    6    1
+    ##  [2,]    8    5    1
+    ##  [3,]    7    6    1
+    ##  [4,]    7    3    1
+    ##  [5,]    7    3    6
+    ##  [6,]    4    8    5
+    ##  [7,]    4    5    6
+    ##  [8,]    4    3    6
+    ##  [9,]    4    3    1
+    ## [10,]    4    8    1
+    ## 
+    ## $area
+    ## [1] 259.3286
+    ## 
+    ## $vol
+    ## [1] 168.6815
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    1    4    2
+    ## [2,]    1    4    5
+    ## [3,]    3    4    2
+    ## [4,]    3    4    5
+    ## [5,]    3    1    2
+    ## [6,]    3    1    5
+    ## 
+    ## $area
+    ## [1] 799.6886
+    ## 
+    ## $vol
+    ## [1] 522.9569
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    1    3    4
+    ## [2,]    2    3    4
+    ## [3,]    2    1    4
+    ## [4,]    2    1    3
+    ## 
+    ## $area
+    ## [1] 90.83519
+    ## 
+    ## $vol
+    ## [1] 8.147371
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    8   11    1
+    ##  [2,]    8    6    9
+    ##  [3,]    8   11    9
+    ##  [4,]   10    6    9
+    ##  [5,]   10    3    6
+    ##  [6,]    2   11    9
+    ##  [7,]    2   10    9
+    ##  [8,]    2   10    3
+    ##  [9,]    2   11    1
+    ## [10,]    2    3    1
+    ## [11,]    4    3    6
+    ## [12,]    4    8    6
+    ## [13,]    4    3    1
+    ## [14,]    4    8    1
+    ## 
+    ## $area
+    ## [1] 1892.83
+    ## 
+    ## $vol
+    ## [1] 3289.526
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    1    3    4
+    ##  [2,]    1    7    3
+    ##  [3,]    2    1    4
+    ##  [4,]    2    1    7
+    ##  [5,]    6    3    4
+    ##  [6,]   10    7    3
+    ##  [7,]   10    6    3
+    ##  [8,]   11    2    7
+    ##  [9,]   11   10    7
+    ## [10,]    5   10    6
+    ## [11,]    5   11   10
+    ## [12,]    5    6    4
+    ## [13,]    5    2    4
+    ## [14,]    5   11    2
+    ## 
+    ## $area
+    ## [1] 542.4528
+    ## 
+    ## $vol
+    ## [1] 664.3903
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    4   10    3
+    ##  [2,]    7    4    3
+    ##  [3,]    7    4    6
+    ##  [4,]    8    4    6
+    ##  [5,]    8    4   10
+    ##  [6,]    2    8    6
+    ##  [7,]    2    8   10
+    ##  [8,]    2   10    3
+    ##  [9,]    2    7    3
+    ## [10,]    5    7    6
+    ## [11,]    5    2    6
+    ## [12,]    5    2    7
+    ## 
+    ## $area
+    ## [1] 2271.596
+    ## 
+    ## $vol
+    ## [1] 3001.615
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]   10    5    4
+    ##  [2,]    7   10    1
+    ##  [3,]   11    5    4
+    ##  [4,]   11   10    1
+    ##  [5,]   11   10    5
+    ##  [6,]    3    7    1
+    ##  [7,]    8   10    4
+    ##  [8,]    8    7   10
+    ##  [9,]    8    3    4
+    ## [10,]    8    3    7
+    ## [11,]    2   11    1
+    ## [12,]    2   11    4
+    ## [13,]    2    3    1
+    ## [14,]    2    3    4
+    ## 
+    ## $area
+    ## [1] 2550.112
+    ## 
+    ## $vol
+    ## [1] 4315.367
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    1    2    5
+    ## [2,]    1    3    5
+    ## [3,]    1    3    2
+    ## [4,]    4    2    5
+    ## [5,]    4    3    5
+    ## [6,]    4    3    2
+    ## 
+    ## $area
+    ## [1] 1071.343
+    ## 
+    ## $vol
+    ## [1] 954.9406
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    7    6    2
+    ##  [2,]    9    4   10
+    ##  [3,]    9    2   10
+    ##  [4,]    9    2    4
+    ##  [5,]    5    4   10
+    ##  [6,]    5    6   10
+    ##  [7,]    5    7    4
+    ##  [8,]    5    7    6
+    ##  [9,]    1    2   10
+    ## [10,]    1    6   10
+    ## [11,]    1    6    2
+    ## [12,]    3    2    4
+    ## [13,]    3    7    4
+    ## [14,]    3    7    2
+    ## 
+    ## $area
+    ## [1] 4905.7
+    ## 
+    ## $vol
+    ## [1] 9827.118
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    8   11    5
+    ##  [2,]    7   11    5
+    ##  [3,]    7    9    5
+    ##  [4,]   10    8    5
+    ##  [5,]   10    2    9
+    ##  [6,]   10    8   11
+    ##  [7,]   10    2   11
+    ##  [8,]    6    2    9
+    ##  [9,]    6    7    9
+    ## [10,]    6    2   11
+    ## [11,]    6    7   11
+    ## [12,]    3    9    5
+    ## [13,]    3   10    5
+    ## [14,]    3   10    9
+    ## 
+    ## $area
+    ## [1] 10.97871
+    ## 
+    ## $vol
+    ## [1] 1.046881
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    6    9    7
+    ##  [2,]    6    3    9
+    ##  [3,]    8    9    7
+    ##  [4,]    8    3    9
+    ##  [5,]    1    6    3
+    ##  [6,]    5    1    6
+    ##  [7,]   11    1    3
+    ##  [8,]   11    5    1
+    ##  [9,]   11    8    3
+    ## [10,]   11    8    7
+    ## [11,]   11    6    7
+    ## [12,]   11    5    6
+    ## 
+    ## $area
+    ## [1] 402.5808
+    ## 
+    ## $vol
+    ## [1] 484.3723
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    3   11    4
+    ##  [2,]    3   11    5
+    ##  [3,]   10   11    5
+    ##  [4,]    8    3    4
+    ##  [5,]    8    3    5
+    ##  [6,]    8   10    4
+    ##  [7,]    8   10    5
+    ##  [8,]    1   11    4
+    ##  [9,]    1   10   11
+    ## [10,]    9   10    4
+    ## [11,]    9    1    4
+    ## [12,]    9    1   10
+    ## 
+    ## $area
+    ## [1] 112.3787
+    ## 
+    ## $vol
+    ## [1] 66.51645
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    1    8    2
+    ## [2,]    5    8    2
+    ## [3,]    5    1    8
+    ## [4,]    7    5    2
+    ## [5,]    7    5    1
+    ## [6,]    3    1    2
+    ## [7,]    3    7    2
+    ## [8,]    3    7    1
+    ## 
+    ## $area
+    ## [1] 1106.741
+    ## 
+    ## $vol
+    ## [1] 1713.092
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    4   11    1
+    ##  [2,]    4    3   11
+    ##  [3,]    6    3   11
+    ##  [4,]    7   11    1
+    ##  [5,]    7    6   11
+    ##  [6,]    7    9    1
+    ##  [7,]    7    6    3
+    ##  [8,]    7    9    3
+    ##  [9,]    2    4    1
+    ## [10,]   10    4    3
+    ## [11,]   10    9    3
+    ## [12,]   10    2    4
+    ## [13,]   10    9    1
+    ## [14,]   10    2    1
+    ## 
+    ## $area
+    ## [1] 69.08229
+    ## 
+    ## $vol
+    ## [1] 35.375
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    3    1    2
+    ## [2,]    4    3    2
+    ## [3,]    4    3    1
+    ## [4,]    5    1    2
+    ## [5,]    5    4    2
+    ## [6,]    5    4    1
+    ## 
+    ## $area
+    ## [1] 221.8438
+    ## 
+    ## $vol
+    ## [1] 103.3987
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    2    1    4
+    ## [2,]    2    3    4
+    ## [3,]    2    3    1
+    ## [4,]    5    1    4
+    ## [5,]    5    3    4
+    ## [6,]    5    3    1
+    ## 
+    ## $area
+    ## [1] 420.8609
+    ## 
+    ## $vol
+    ## [1] 186.5721
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]   10    8    5
+    ##  [2,]   10    6    8
+    ##  [3,]    4    8    5
+    ##  [4,]    4    6    8
+    ##  [5,]    2   10    5
+    ##  [6,]    2   10    6
+    ##  [7,]    3    4    5
+    ##  [8,]    3    2    5
+    ##  [9,]    3    2    6
+    ## [10,]    1    4    6
+    ## [11,]    1    3    6
+    ## [12,]    1    3    4
+    ## 
+    ## $area
+    ## [1] 18.37455
+    ## 
+    ## $vol
+    ## [1] 2.92571
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    7    5    6
+    ##  [2,]    1    5    4
+    ##  [3,]    1    5    6
+    ##  [4,]    1    7    6
+    ##  [5,]    1   10    7
+    ##  [6,]    3    5    4
+    ##  [7,]    8    7    5
+    ##  [8,]    8    3    5
+    ##  [9,]    8    3    7
+    ## [10,]   11   10    7
+    ## [11,]   11    3    7
+    ## [12,]   11    3    4
+    ## [13,]   11    1    4
+    ## [14,]   11    1   10
+    ## 
+    ## $area
+    ## [1] 3108.163
+    ## 
+    ## $vol
+    ## [1] 7063.975
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    8    3    1
+    ## [2,]    5    8    1
+    ## [3,]    5    8    3
+    ## [4,]    2    5    1
+    ## [5,]    6    5    3
+    ## [6,]    6    2    5
+    ## [7,]    6    3    1
+    ## [8,]    6    2    1
+    ## 
+    ## $area
+    ## [1] 1744.045
+    ## 
+    ## $vol
+    ## [1] 981.0603
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    3    8    1
+    ##  [2,]    3    6    8
+    ##  [3,]    4    8    1
+    ##  [4,]    4    7    8
+    ##  [5,]    5    6    8
+    ##  [6,]    5    7    8
+    ##  [7,]    2    4    1
+    ##  [8,]    2    3    1
+    ##  [9,]    2    3    6
+    ## [10,]    2    5    6
+    ## [11,]    2    4    7
+    ## [12,]    2    5    7
+    ## 
+    ## $area
+    ## [1] 840.5023
+    ## 
+    ## $vol
+    ## [1] 859.0163
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    1    8    3
+    ##  [2,]    9    8    3
+    ##  [3,]    9   10    3
+    ##  [4,]    2   10    3
+    ##  [5,]    2    1    3
+    ##  [6,]    2    1   10
+    ##  [7,]    5    1    8
+    ##  [8,]    5    1   10
+    ##  [9,]    6    9   10
+    ## [10,]    6    5   10
+    ## [11,]    7    9    8
+    ## [12,]    7    6    9
+    ## [13,]    7    5    8
+    ## [14,]    7    6    5
+    ## 
+    ## $area
+    ## [1] 998.5678
+    ## 
+    ## $vol
+    ## [1] 1937.297
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]   11    7   10
+    ##  [2,]    1   10    2
+    ##  [3,]    1   11   10
+    ##  [4,]    1    7    2
+    ##  [5,]    9   10    2
+    ##  [6,]    5   11    7
+    ##  [7,]    5    1    7
+    ##  [8,]    5    1   11
+    ##  [9,]    8    7   10
+    ## [10,]    8    9   10
+    ## [11,]    8    7    2
+    ## [12,]    8    9    2
+    ## 
+    ## $area
+    ## [1] 473.3126
+    ## 
+    ## $vol
+    ## [1] 375.0011
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    8   10    2
+    ##  [2,]    4   10    5
+    ##  [3,]    4   10    2
+    ##  [4,]    3    8    2
+    ##  [5,]    3    4    2
+    ##  [6,]    7    3    8
+    ##  [7,]    7    3    4
+    ##  [8,]    9    8   10
+    ##  [9,]    9    7    8
+    ## [10,]    9   10    5
+    ## [11,]    9    7    5
+    ## [12,]   11    4    5
+    ## [13,]   11    7    5
+    ## [14,]   11    7    4
+    ## 
+    ## $area
+    ## [1] 13.01947
+    ## 
+    ## $vol
+    ## [1] 1.342989
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    3    4    1
+    ## [2,]    2    4    1
+    ## [3,]    2    3    1
+    ## [4,]    2    3    4
+    ## 
+    ## $area
+    ## [1] 562.2438
+    ## 
+    ## $vol
+    ## [1] 59.6388
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    6    9    8
+    ##  [2,]   10    3    2
+    ##  [3,]   10    9    8
+    ##  [4,]    1    3    2
+    ##  [5,]    1    6    2
+    ##  [6,]    1    6    3
+    ##  [7,]   11    3    8
+    ##  [8,]   11    6    8
+    ##  [9,]   11    6    3
+    ## [10,]    5    6    9
+    ## [11,]    5   10    9
+    ## [12,]    5    6    2
+    ## [13,]    5   10    2
+    ## [14,]    7    3    8
+    ## [15,]    7   10    8
+    ## [16,]    7   10    3
+    ## 
+    ## $area
+    ## [1] 437.9139
+    ## 
+    ## $vol
+    ## [1] 372.0408
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    5    4    9
+    ##  [2,]    5    3    1
+    ##  [3,]    5    3    4
+    ##  [4,]    7    3    1
+    ##  [5,]    8    7    9
+    ##  [6,]    8    7    3
+    ##  [7,]    8    4    9
+    ##  [8,]    8    3    4
+    ##  [9,]    6    7    1
+    ## [10,]    6    5    9
+    ## [11,]    6    7    9
+    ## [12,]    2    5    1
+    ## [13,]    2    6    1
+    ## [14,]    2    6    5
+    ## 
+    ## $area
+    ## [1] 1530.431
+    ## 
+    ## $vol
+    ## [1] 1851.15
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    1    3    2
+    ## [2,]    4    3    2
+    ## [3,]    4    1    2
+    ## [4,]    4    1    3
+    ## 
+    ## $area
+    ## [1] 202.643
+    ## 
+    ## $vol
+    ## [1] 40.04317
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    2   10    8
+    ## [2,]    2    4   10
+    ## [3,]    2   11    8
+    ## [4,]    2    4   11
+    ## [5,]    9   10    8
+    ## [6,]    9   11    8
+    ## [7,]    9    4   10
+    ## [8,]    9    4   11
+    ## 
+    ## $area
+    ## [1] 47.40703
+    ## 
+    ## $vol
+    ## [1] 8.250651
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    7    2    8
+    ##  [2,]    6    5    2
+    ##  [3,]    6    7    2
+    ##  [4,]    6    7    5
+    ##  [5,]    4    5    2
+    ##  [6,]    4    7    8
+    ##  [7,]    4    7    5
+    ##  [8,]    3    2    8
+    ##  [9,]    3    4    8
+    ## [10,]    3    4    2
+    ## 
+    ## $area
+    ## [1] 682.3959
+    ## 
+    ## $vol
+    ## [1] 889.4584
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    4    2    5
+    ##  [2,]    9    7   10
+    ##  [3,]    9    4    5
+    ##  [4,]    9    4   10
+    ##  [5,]    1    2    5
+    ##  [6,]    1    7    5
+    ##  [7,]    1    7    2
+    ##  [8,]   11    4   10
+    ##  [9,]   11    4    2
+    ## [10,]   11    7   10
+    ## [11,]   11    7    2
+    ## [12,]    3    7    5
+    ## [13,]    3    9    5
+    ## [14,]    3    9    7
+    ## 
+    ## $area
+    ## [1] 670.6503
+    ## 
+    ## $vol
+    ## [1] 967.0734
+
+#### Pre-Augmentation: Foraging Modes
+
+``` r
+GolfBall_Volume_Forage_Pre <- GolfBall_VidSync_Pre %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+a <- c(7,13)
+for (i in a) {
+  GolfBall_Volume_Forage_Pre %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+```
+
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    1    2    5
+    ## [2,]    4    2    5
+    ## [3,]    4    1    5
+    ## [4,]    3    1    2
+    ## [5,]    3    4    2
+    ## [6,]    3    4    1
+    ## 
+    ## $area
+    ## [1] 1005.832
+    ## 
+    ## $vol
+    ## [1] 804.3241
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    2    4    1
+    ## [2,]    3    4    1
+    ## [3,]    3    2    1
+    ## [4,]    3    2    4
+    ## 
+    ## $area
+    ## [1] 920.6928
+    ## 
+    ## $vol
+    ## [1] 723.1495
+
+``` r
+HalfTire_Volume_Forage_Pre <- HalfTire_VidSync_Pre %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:8) {
+  HalfTire_Volume_Forage_Pre %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+```
+
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    4    1    3
+    ## [2,]    2    1    3
+    ## [3,]    2    4    3
+    ## [4,]    2    4    1
+    ## 
+    ## $area
+    ## [1] 894.6095
+    ## 
+    ## $vol
+    ## [1] 297.7382
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    4    5    2
+    ## [2,]    3    4    2
+    ## [3,]    3    4    5
+    ## [4,]    1    5    2
+    ## [5,]    1    3    2
+    ## [6,]    1    3    5
+    ## 
+    ## $area
+    ## [1] 2699.62
+    ## 
+    ## $vol
+    ## [1] 1714.923
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    2    7    8
+    ##  [2,]    2    7    3
+    ##  [3,]    9    7    8
+    ##  [4,]    9    2    8
+    ##  [5,]    1    9    7
+    ##  [6,]    6    7    3
+    ##  [7,]    6    1    3
+    ##  [8,]    6    1    7
+    ##  [9,]    4    1    3
+    ## [10,]    4    1    9
+    ## [11,]    4    2    3
+    ## [12,]    4    9    2
+    ## 
+    ## $area
+    ## [1] 1787.963
+    ## 
+    ## $vol
+    ## [1] 1941.927
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    2    1    5
+    ## [2,]    4    2    5
+    ## [3,]    3    1    5
+    ## [4,]    3    4    5
+    ## [5,]    3    2    1
+    ## [6,]    3    4    2
+    ## 
+    ## $area
+    ## [1] 651.3871
+    ## 
+    ## $vol
+    ## [1] 418.8056
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    7    3    1
+    ## [2,]    7    3    8
+    ## [3,]    6    3    1
+    ## [4,]    6    7    1
+    ## [5,]    6    7    8
+    ## [6,]    4    3    8
+    ## [7,]    4    6    8
+    ## [8,]    4    6    3
+    ## 
+    ## $area
+    ## [1] 3964.071
+    ## 
+    ## $vol
+    ## [1] 2153.043
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    5    1    4
+    ## [2,]    2    5    4
+    ## [3,]    2    5    1
+    ## [4,]    3    1    4
+    ## [5,]    3    2    4
+    ## [6,]    3    2    1
+    ## 
+    ## $area
+    ## [1] 977.0674
+    ## 
+    ## $vol
+    ## [1] 208.3656
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    5    6    4
+    ## [2,]    1    5    4
+    ## [3,]    1    5    6
+    ## [4,]    3    6    4
+    ## [5,]    3    1    4
+    ## [6,]    3    1    6
+    ## 
+    ## $area
+    ## [1] 1706.99
+    ## 
+    ## $vol
+    ## [1] 1482.8
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    5   10    1
+    ##  [2,]    5   10    6
+    ##  [3,]    3   10    1
+    ##  [4,]    7   10    6
+    ##  [5,]    7    3    6
+    ##  [6,]    7    3   10
+    ##  [7,]    4    5    6
+    ##  [8,]    4    3    6
+    ##  [9,]    4    5    1
+    ## [10,]    4    3    1
+    ## 
+    ## $area
+    ## [1] 3735.021
+    ## 
+    ## $vol
+    ## [1] 5329.532
+
+``` r
+RoachRun_Volume_Forage_Pre <- RoachRun_VidSync_Pre %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:19) {
+  if (i == 3) {
+    next
+  }
+  if (i == 7) {
+    next
+  }
+  if (i == 14) {
+    next
+  }
+  if (i == 16) {
+    next
+  }
+  RoachRun_Volume_Forage_Pre %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+```
+
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    3    2    7
+    ##  [2,]    1    2    7
+    ##  [3,]    1    9    2
+    ##  [4,]   10    1    7
+    ##  [5,]   10    1    9
+    ##  [6,]   10    8    7
+    ##  [7,]   10    8    9
+    ##  [8,]    6    3    7
+    ##  [9,]    6    8    7
+    ## [10,]    6    8    3
+    ## [11,]    4    8    3
+    ## [12,]    4    8    9
+    ## [13,]    4    3    2
+    ## [14,]    4    9    2
+    ## 
+    ## $area
+    ## [1] 92.91676
+    ## 
+    ## $vol
+    ## [1] 35.39281
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    2    3    1
+    ##  [2,]    4    2    1
+    ##  [3,]    9    3    7
+    ##  [4,]    9    3    1
+    ##  [5,]   11    2    3
+    ##  [6,]   11    4    2
+    ##  [7,]   11    3    7
+    ##  [8,]    6   11    7
+    ##  [9,]    6   11    4
+    ## [10,]    5    4    1
+    ## [11,]    5    9    1
+    ## [12,]    5    6    4
+    ## [13,]    5    9    7
+    ## [14,]    5    6    7
+    ## 
+    ## $area
+    ## [1] 166.9069
+    ## 
+    ## $vol
+    ## [1] 53.06112
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    8    1    7
+    ##  [2,]    8    4    7
+    ##  [3,]    9    8    1
+    ##  [4,]    9    8    4
+    ##  [5,]    6    1    7
+    ##  [6,]    6    4    7
+    ##  [7,]    3    9    1
+    ##  [8,]    3    9    4
+    ##  [9,]    3    6    1
+    ## [10,]    3    6    4
+    ## 
+    ## $area
+    ## [1] 909.039
+    ## 
+    ## $vol
+    ## [1] 1089.977
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    7    6   10
+    ##  [2,]    2    6   10
+    ##  [3,]   11    7    1
+    ##  [4,]   11    2    1
+    ##  [5,]   11    2   10
+    ##  [6,]    3    2    1
+    ##  [7,]    3    2    6
+    ##  [8,]    8    7   10
+    ##  [9,]    8   11   10
+    ## [10,]    8   11    7
+    ## [11,]    4    3    1
+    ## [12,]    4    7    1
+    ## [13,]    5    3    6
+    ## [14,]    5    4    3
+    ## [15,]    5    7    6
+    ## [16,]    5    4    7
+    ## 
+    ## $area
+    ## [1] 82.60097
+    ## 
+    ## $vol
+    ## [1] 33.98795
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    4    7    2
+    ##  [2,]    6    5    7
+    ##  [3,]    6    4    7
+    ##  [4,]    6    4    5
+    ##  [5,]    1    7    2
+    ##  [6,]    1    5    7
+    ##  [7,]    3    4    5
+    ##  [8,]    3    1    5
+    ##  [9,]    3    4    2
+    ## [10,]    3    1    2
+    ## 
+    ## $area
+    ## [1] 5345.584
+    ## 
+    ## $vol
+    ## [1] 6648.572
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    3    1    4
+    ##  [2,]    9    8    4
+    ##  [3,]    9    3    4
+    ##  [4,]    6    1    4
+    ##  [5,]    6    8    4
+    ##  [6,]    2    3    1
+    ##  [7,]    2    9    3
+    ##  [8,]    7    9    8
+    ##  [9,]   11    6    1
+    ## [10,]   11    2    1
+    ## [11,]   11    6    8
+    ## [12,]   11    7    8
+    ## [13,]   11    2    9
+    ## [14,]   11    7    9
+    ## 
+    ## $area
+    ## [1] 10.56231
+    ## 
+    ## $vol
+    ## [1] 1.759631
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    1    2    8
+    ##  [2,]    4    8    5
+    ##  [3,]    4    1    8
+    ##  [4,]    7    2    8
+    ##  [5,]    7    6    2
+    ##  [6,]    7    8    5
+    ##  [7,]    7    6    5
+    ##  [8,]    3    1    2
+    ##  [9,]    3    4    1
+    ## [10,]    3    6    2
+    ## [11,]    3    6    5
+    ## [12,]    3    4    5
+    ## 
+    ## $area
+    ## [1] 956.7945
+    ## 
+    ## $vol
+    ## [1] 1030.59
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    2    1    3
+    ## [2,]    6    2    3
+    ## [3,]    6    2    1
+    ## [4,]    4    1    3
+    ## [5,]    4    6    3
+    ## [6,]    5    6    1
+    ## [7,]    5    4    1
+    ## [8,]    5    4    6
+    ## 
+    ## $area
+    ## [1] 508.412
+    ## 
+    ## $vol
+    ## [1] 160.8925
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    3    2    4
+    ##  [2,]    3    8    4
+    ##  [3,]    7    2    9
+    ##  [4,]    7    2    4
+    ##  [5,]    7    8    9
+    ##  [6,]    7    8    4
+    ##  [7,]    6    2    9
+    ##  [8,]    6    8    9
+    ##  [9,]    1    3    2
+    ## [10,]    1    3    8
+    ## [11,]    1    6    2
+    ## [12,]    1    6    8
+    ## 
+    ## $area
+    ## [1] 2.771477
+    ## 
+    ## $vol
+    ## [1] 0.1886601
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    2    5    1
+    ## [2,]    2    3    1
+    ## [3,]    2    3    5
+    ## [4,]    4    5    1
+    ## [5,]    4    3    1
+    ## [6,]    4    3    5
+    ## 
+    ## $area
+    ## [1] 16.44502
+    ## 
+    ## $vol
+    ## [1] 1.156468
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    2    5    1
+    ##  [2,]    6    2    1
+    ##  [3,]   11    5   10
+    ##  [4,]   11    6   10
+    ##  [5,]   11    6    1
+    ##  [6,]    8    6    2
+    ##  [7,]    8    2    5
+    ##  [8,]    4    5    1
+    ##  [9,]    4   11    1
+    ## [10,]    4   11    5
+    ## [11,]    9    5   10
+    ## [12,]    9    8    5
+    ## [13,]    9    6   10
+    ## [14,]    9    8    6
+    ## 
+    ## $area
+    ## [1] 108.2664
+    ## 
+    ## $vol
+    ## [1] 69.95656
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    2    7    5
+    ##  [2,]    8    2    7
+    ##  [3,]    8   11    7
+    ##  [4,]    6    7    5
+    ##  [5,]    6   11    7
+    ##  [6,]   10    8    2
+    ##  [7,]   10    8   11
+    ##  [8,]    4    6    5
+    ##  [9,]    4    2    5
+    ## [10,]    4   10    2
+    ## [11,]    3   10   11
+    ## [12,]    3    4   10
+    ## [13,]    3    6   11
+    ## [14,]    3    4    6
+    ## 
+    ## $area
+    ## [1] 224.6459
+    ## 
+    ## $vol
+    ## [1] 174.4089
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    9    7   10
+    ##  [2,]    5    7   10
+    ##  [3,]    8    7    1
+    ##  [4,]    8    9    1
+    ##  [5,]    8    9    7
+    ##  [6,]   11    5   10
+    ##  [7,]   11    9   10
+    ##  [8,]   11    9    1
+    ##  [9,]    2    7    1
+    ## [10,]    2    5    7
+    ## [11,]    2   11    1
+    ## [12,]    2   11    5
+    ## 
+    ## $area
+    ## [1] 441.4269
+    ## 
+    ## $vol
+    ## [1] 222.4795
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    2    6    3
+    ## [2,]    1    2    3
+    ## [3,]    1    2    6
+    ## [4,]    4    6    3
+    ## [5,]    4    1    3
+    ## [6,]    4    1    6
+    ## 
+    ## $area
+    ## [1] 540.7251
+    ## 
+    ## $vol
+    ## [1] 164.438
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    3    1    4
+    ## [2,]    2    1    4
+    ## [3,]    2    3    4
+    ## [4,]    2    3    1
+    ## 
+    ## $area
+    ## [1] 7.671573
+    ## 
+    ## $vol
+    ## [1] 0.1675174
+
+``` r
+JesusToast_Volume_Forage_Pre <- JesusToast_VidSync_Pre %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:13) {
+  if (i == 2) {
+    next
+  }
+  if (i == 5) {
+    next
+  }
+  if (i == 6) {
+    next
+  }
+  if (i == 10) {
+    next
+  }
+  if (i == 12) {
+    next
+  }
+  JesusToast_Volume_Forage_Pre %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+```
+
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    1    6    7
+    ##  [2,]    2    6    7
+    ##  [3,]    2    6    5
+    ##  [4,]    2    1    7
+    ##  [5,]    2    1    5
+    ##  [6,]    3    1    6
+    ##  [7,]    4    6    5
+    ##  [8,]    4    3    6
+    ##  [9,]    4    1    5
+    ## [10,]    4    3    1
+    ## 
+    ## $area
+    ## [1] 117.5007
+    ## 
+    ## $vol
+    ## [1] 54.30901
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    4    3    2
+    ## [2,]    4    5    2
+    ## [3,]    4    5    3
+    ## [4,]    1    3    2
+    ## [5,]    1    5    2
+    ## [6,]    1    5    3
+    ## 
+    ## $area
+    ## [1] 35.77797
+    ## 
+    ## $vol
+    ## [1] 2.946299
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    7    5    9
+    ##  [2,]    7    6    9
+    ##  [3,]    7    6    1
+    ##  [4,]    4    5    1
+    ##  [5,]    3    5    1
+    ##  [6,]    3    7    1
+    ##  [7,]    3    7    5
+    ##  [8,]   10    5    9
+    ##  [9,]   10    4    9
+    ## [10,]   10    4    5
+    ## [11,]    2    6    1
+    ## [12,]    2    4    1
+    ## [13,]    2    6    9
+    ## [14,]    2    4    9
+    ## 
+    ## $area
+    ## [1] 241.7761
+    ## 
+    ## $vol
+    ## [1] 206.0451
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    6    3   10
+    ## [2,]    6    9   10
+    ## [3,]    7    3   10
+    ## [4,]    7    9   10
+    ## [5,]    5    7    3
+    ## [6,]    5    7    9
+    ## [7,]    5    6    3
+    ## [8,]    5    6    9
+    ## 
+    ## $area
+    ## [1] 194.8015
+    ## 
+    ## $vol
+    ## [1] 80.62148
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    5    6    3
+    ## [2,]    5    4    3
+    ## [3,]    5    6    2
+    ## [4,]    5    4    2
+    ## [5,]    1    6    3
+    ## [6,]    1    6    2
+    ## [7,]    1    4    3
+    ## [8,]    1    4    2
+    ## 
+    ## $area
+    ## [1] 292.0123
+    ## 
+    ## $vol
+    ## [1] 45.92541
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    9    2    5
+    ## [2,]    3    2    5
+    ## [3,]    3    9    2
+    ## [4,]    8    9    5
+    ## [5,]    8    3    5
+    ## [6,]    8    3    9
+    ## 
+    ## $area
+    ## [1] 47.66431
+    ## 
+    ## $vol
+    ## [1] 4.2227
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    7    1    9
+    ## [2,]    8    6    9
+    ## [3,]    8    1    9
+    ## [4,]    8    7    1
+    ## [5,]    3    6    9
+    ## [6,]    3    7    9
+    ## [7,]    3    8    6
+    ## [8,]    3    8    7
+    ## 
+    ## $area
+    ## [1] 124.2143
+    ## 
+    ## $vol
+    ## [1] 7.007624
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    8    9   10
+    ##  [2,]    3    8   10
+    ##  [3,]    3    6    8
+    ##  [4,]    7    9   10
+    ##  [5,]    7    8    9
+    ##  [6,]    7    6    8
+    ##  [7,]    5    7   10
+    ##  [8,]    1    7    6
+    ##  [9,]    1    5    7
+    ## [10,]    1    3    6
+    ## [11,]    1    3   10
+    ## [12,]    1    5   10
+    ## 
+    ## $area
+    ## [1] 371.1708
+    ## 
+    ## $vol
+    ## [1] 284.935
+
+#### Post-Augmentation: Foraging Modes
+
+``` r
+GolfBall_Volume_Forage_Post <- GolfBall_VidSync_Post %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+HalfTire_Volume_Forage_Post <- HalfTire_VidSync_Post %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:48) {
+  if (i == 6) {
+    next
+  }
+  if (i == 8) {
+    next
+  }
+  if (i == 12) {
+    next
+  }
+  if (i == 23) {
+    next
+  }
+  if (i == 32) {
+    next
+  }
+  if (i == 39) {
+    next
+  }
+  if (i == 40) {
+    next
+  }
+  if (i == 41) {
+    next
+  }
+  HalfTire_Volume_Forage_Post %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+```
+
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    5    4    1
+    ## [2,]    2    4    1
+    ## [3,]    6    5    1
+    ## [4,]    6    2    1
+    ## [5,]    6    2    5
+    ## [6,]    3    5    4
+    ## [7,]    3    2    4
+    ## [8,]    3    2    5
+    ## 
+    ## $area
+    ## [1] 261.3068
+    ## 
+    ## $vol
+    ## [1] 160.6723
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    8    3    7
+    ##  [2,]    8    5    7
+    ##  [3,]    1    8    3
+    ##  [4,]    1    8    5
+    ##  [5,]    4    3    7
+    ##  [6,]    4    1    3
+    ##  [7,]    4    1    5
+    ##  [8,]    6    5    7
+    ##  [9,]    6    4    7
+    ## [10,]    6    4    5
+    ## 
+    ## $area
+    ## [1] 1246.887
+    ## 
+    ## $vol
+    ## [1] 1216.355
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    2    4    9
+    ##  [2,]    2    4    1
+    ##  [3,]   10   11    9
+    ##  [4,]    8   11    9
+    ##  [5,]    8    2    9
+    ##  [6,]    8   11    1
+    ##  [7,]    8    2    1
+    ##  [8,]    5   10   11
+    ##  [9,]    5    4    1
+    ## [10,]    5   11    1
+    ## [11,]    5    4    9
+    ## [12,]    5   10    9
+    ## 
+    ## $area
+    ## [1] 164.4332
+    ## 
+    ## $vol
+    ## [1] 131.2419
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    7    4    1
+    ##  [2,]    7    3    1
+    ##  [3,]    7    3    4
+    ##  [4,]    5    4    1
+    ##  [5,]    2    3    1
+    ##  [6,]    2    5    1
+    ##  [7,]    2    5    3
+    ##  [8,]    6    3    4
+    ##  [9,]    6    5    4
+    ## [10,]    6    5    3
+    ## 
+    ## $area
+    ## [1] 974.1725
+    ## 
+    ## $vol
+    ## [1] 904.9303
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    9    3    1
+    ##  [2,]    9    3   11
+    ##  [3,]    2    3    1
+    ##  [4,]    2    6    3
+    ##  [5,]    5    3   11
+    ##  [6,]    5    6   11
+    ##  [7,]    5    6    3
+    ##  [8,]    8    6   11
+    ##  [9,]    8    9   11
+    ## [10,]    8    6    1
+    ## [11,]    8    9    1
+    ## [12,]    4    6    1
+    ## [13,]    4    2    1
+    ## [14,]    4    2    6
+    ## 
+    ## $area
+    ## [1] 396.0309
+    ## 
+    ## $vol
+    ## [1] 277.7312
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    8    1    7
+    ## [2,]    8    4    1
+    ## [3,]    5    8    7
+    ## [4,]    5    8    4
+    ## [5,]    6    1    7
+    ## [6,]    6    4    1
+    ## [7,]    6    5    7
+    ## [8,]    6    5    4
+    ## 
+    ## $area
+    ## [1] 1210780
+    ## 
+    ## $vol
+    ## [1] 3233423
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    9    7    8
+    ##  [2,]    9    4    8
+    ##  [3,]    1    7    8
+    ##  [4,]    1    4    8
+    ##  [5,]    1    4    2
+    ##  [6,]    5    9    7
+    ##  [7,]    5    9    4
+    ##  [8,]    5    4    2
+    ##  [9,]    6    1    7
+    ## [10,]    6    1    2
+    ## [11,]    6    5    7
+    ## [12,]    6    5    2
+    ## 
+    ## $area
+    ## [1] 4325.844
+    ## 
+    ## $vol
+    ## [1] 3020.598
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    2    7    4
+    ##  [2,]    2    5    7
+    ##  [3,]    8    5    7
+    ##  [4,]    6    8    7
+    ##  [5,]    1    7    4
+    ##  [6,]    1    6    7
+    ##  [7,]    1    2    4
+    ##  [8,]    1    2    5
+    ##  [9,]    1    8    5
+    ## [10,]    1    6    8
+    ## 
+    ## $area
+    ## [1] 1652.941
+    ## 
+    ## $vol
+    ## [1] 2269.348
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    4    6    1
+    ##  [2,]    4    3    1
+    ##  [3,]    4    3    6
+    ##  [4,]    8    9    1
+    ##  [5,]    8    3    6
+    ##  [6,]   11    9    1
+    ##  [7,]   11    8    3
+    ##  [8,]   11    8    9
+    ##  [9,]    7    6    1
+    ## [10,]    7    8    1
+    ## [11,]    7    8    6
+    ## [12,]    2    3    1
+    ## [13,]    2   11    1
+    ## [14,]    2   11    3
+    ## 
+    ## $area
+    ## [1] 262.8885
+    ## 
+    ## $vol
+    ## [1] 231.558
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    3    2    1
+    ## [2,]    4    2    1
+    ## [3,]    4    3    2
+    ## [4,]    5    3    1
+    ## [5,]    5    4    1
+    ## [6,]    5    4    3
+    ## 
+    ## $area
+    ## [1] 2.146549e+13
+    ## 
+    ## $vol
+    ## [1] 1.963761e+15
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    4    2    3
+    ## [2,]    1    2    3
+    ## [3,]    1    2    6
+    ## [4,]    1    4    3
+    ## [5,]    1    4    6
+    ## [6,]    5    2    6
+    ## [7,]    5    4    6
+    ## [8,]    5    4    2
+    ## 
+    ## $area
+    ## [1] 8.64846e+14
+    ## 
+    ## $vol
+    ## [1] 3.145911e+15
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    6    4    7
+    ## [2,]    2    4    7
+    ## [3,]    2    6    7
+    ## [4,]    5    6    4
+    ## [5,]    5    2    4
+    ## [6,]    5    2    6
+    ## 
+    ## $area
+    ## [1] 1011.743
+    ## 
+    ## $vol
+    ## [1] 220.5638
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    2    6   11
+    ##  [2,]    2    1   11
+    ##  [3,]    4    2    6
+    ##  [4,]    8    6   11
+    ##  [5,]    8    1   11
+    ##  [6,]    3    2    1
+    ##  [7,]    3    4    2
+    ##  [8,]    7    8    1
+    ##  [9,]    7    3    1
+    ## [10,]    7    8    6
+    ## [11,]    7    4    6
+    ## [12,]    7    3    4
+    ## 
+    ## $area
+    ## [1] 14463.43
+    ## 
+    ## $vol
+    ## [1] 29025.41
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    4    6    3
+    ## [2,]    4    5    6
+    ## [3,]    2    6    3
+    ## [4,]    2    5    6
+    ## [5,]    1    2    3
+    ## [6,]    1    2    5
+    ## [7,]    1    4    3
+    ## [8,]    1    4    5
+    ## 
+    ## $area
+    ## [1] 344.6005
+    ## 
+    ## $vol
+    ## [1] 166.4916
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    1    3    5
+    ##  [2,]    2    1    3
+    ##  [3,]    2    7    3
+    ##  [4,]    2    7    1
+    ##  [5,]    4    3    5
+    ##  [6,]    4    7    5
+    ##  [7,]    4    7    3
+    ##  [8,]    6    1    5
+    ##  [9,]    6    7    5
+    ## [10,]    6    7    1
+    ## 
+    ## $area
+    ## [1] 1802.566
+    ## 
+    ## $vol
+    ## [1] 3706.996
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    8    2    6
+    ## [2,]    3    4    6
+    ## [3,]    3    8    6
+    ## [4,]    3    4    2
+    ## [5,]    3    8    2
+    ## [6,]    1    2    6
+    ## [7,]    1    4    6
+    ## [8,]    1    4    2
+    ## 
+    ## $area
+    ## [1] 840.6643
+    ## 
+    ## $vol
+    ## [1] 869.9205
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    8    6    7
+    ##  [2,]    8    4    7
+    ##  [3,]    9    6   10
+    ##  [4,]    9    4    7
+    ##  [5,]    3    8    4
+    ##  [6,]    2    6    7
+    ##  [7,]    2    9    7
+    ##  [8,]    2    9    6
+    ##  [9,]   11    3    4
+    ## [10,]   11    9   10
+    ## [11,]   11    9    4
+    ## [12,]   11    6   10
+    ## [13,]   11    8    6
+    ## [14,]   11    3    8
+    ## 
+    ## $area
+    ## [1] 28479945657
+    ## 
+    ## $vol
+    ## [1] 159274463678
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    6    5    1
+    ##  [2,]    7    5   10
+    ##  [3,]    7    5    1
+    ##  [4,]    7    4   10
+    ##  [5,]    7    4    1
+    ##  [6,]    8    6    1
+    ##  [7,]    8    4    1
+    ##  [8,]    2    8    4
+    ##  [9,]    2    5   10
+    ## [10,]    2    4   10
+    ## [11,]    2    6    5
+    ## [12,]    2    8    6
+    ## 
+    ## $area
+    ## [1] 20.14348
+    ## 
+    ## $vol
+    ## [1] 3.092659
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]   10    6    3
+    ##  [2,]    4    6    3
+    ##  [3,]    4    6    5
+    ##  [4,]    9    8    3
+    ##  [5,]    9   10    3
+    ##  [6,]    9   10    8
+    ##  [7,]    7    8    5
+    ##  [8,]    7   10    8
+    ##  [9,]    7    6    5
+    ## [10,]    7   10    6
+    ## [11,]    2    4    3
+    ## [12,]    2    4    5
+    ## [13,]    2    8    3
+    ## [14,]    2    8    5
+    ## 
+    ## $area
+    ## [1] 596.179
+    ## 
+    ## $vol
+    ## [1] 631.9241
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    3    4    5
+    ## [2,]    3    4    2
+    ## [3,]    1    4    2
+    ## [4,]    1    3    2
+    ## [5,]    6    4    5
+    ## [6,]    6    1    4
+    ## [7,]    6    3    5
+    ## [8,]    6    1    3
+    ## 
+    ## $area
+    ## [1] 3746.702
+    ## 
+    ## $vol
+    ## [1] 3814.663
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    2    4    8
+    ##  [2,]    7   11    1
+    ##  [3,]    7    4    8
+    ##  [4,]    6   11    1
+    ##  [5,]    6    4    1
+    ##  [6,]    6    7   11
+    ##  [7,]    6    7    4
+    ##  [8,]    5    7    1
+    ##  [9,]    5    7    8
+    ## [10,]    5    2    8
+    ## [11,]    5    4    1
+    ## [12,]    5    2    4
+    ## 
+    ## $area
+    ## [1] 44.97058
+    ## 
+    ## $vol
+    ## [1] 12.71295
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    2    9    6
+    ##  [2,]    2    9    5
+    ##  [3,]    4    9    6
+    ##  [4,]    4    1    6
+    ##  [5,]    4    9    5
+    ##  [6,]    4    1    5
+    ##  [7,]    3    1    5
+    ##  [8,]    3    2    5
+    ##  [9,]    8    3    2
+    ## [10,]    8    2    6
+    ## [11,]    8    3    1
+    ## [12,]    8    1    6
+    ## 
+    ## $area
+    ## [1] 28.20636
+    ## 
+    ## $vol
+    ## [1] 4.06395
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    1    9   11
+    ##  [2,]    3    9   11
+    ##  [3,]   10    1   11
+    ##  [4,]    8    1    9
+    ##  [5,]    8    1    2
+    ##  [6,]    4    3   11
+    ##  [7,]    4   10   11
+    ##  [8,]    4    3    2
+    ##  [9,]    4    1    2
+    ## [10,]    4   10    1
+    ## [11,]    5    3    9
+    ## [12,]    5    8    9
+    ## [13,]    5    3    2
+    ## [14,]    6    8    2
+    ## [15,]    6    5    2
+    ## [16,]    6    5    8
+    ## 
+    ## $area
+    ## [1] 242.8663
+    ## 
+    ## $vol
+    ## [1] 188.1966
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    6    2    1
+    ##  [2,]    6    4    1
+    ##  [3,]   11    2    1
+    ##  [4,]   11    2    9
+    ##  [5,]   11    4    1
+    ##  [6,]   11    4    9
+    ##  [7,]    5    6    4
+    ##  [8,]    5    6    2
+    ##  [9,]    5    4    9
+    ## [10,]    5    2    9
+    ## 
+    ## $area
+    ## [1] 254.7986
+    ## 
+    ## $vol
+    ## [1] 254.7852
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    3   11   10
+    ##  [2,]    4    3    6
+    ##  [3,]    4    3   11
+    ##  [4,]    9    1   10
+    ##  [5,]    2    3   10
+    ##  [6,]    2    1   10
+    ##  [7,]    2    9    1
+    ##  [8,]    2    3    6
+    ##  [9,]    2    9    6
+    ## [10,]    7    4   11
+    ## [11,]    7    8    6
+    ## [12,]    7    4    6
+    ## [13,]    5   11   10
+    ## [14,]    5    9   10
+    ## [15,]    5    7    8
+    ## [16,]    5    7   11
+    ## [17,]    5    8    6
+    ## [18,]    5    9    6
+    ## 
+    ## $area
+    ## [1] 835687110844
+    ## 
+    ## $vol
+    ## [1] 1.855563e+13
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    2    3    7
+    ## [2,]    8    2    7
+    ## [3,]    8    2    3
+    ## [4,]    4    3    7
+    ## [5,]    4    8    7
+    ## [6,]    4    8    3
+    ## 
+    ## $area
+    ## [1] 72.45213
+    ## 
+    ## $vol
+    ## [1] 18.37382
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    4    8    6
+    ##  [2,]    5    4    3
+    ##  [3,]    7    5    3
+    ##  [4,]    7    4    6
+    ##  [5,]    7    5    4
+    ##  [6,]    2    8    6
+    ##  [7,]    2    7    6
+    ##  [8,]    1    7    3
+    ##  [9,]    1    2    7
+    ## [10,]    1    2    8
+    ## [11,]    1    4    3
+    ## [12,]    1    4    8
+    ## 
+    ## $area
+    ## [1] 884.462
+    ## 
+    ## $vol
+    ## [1] 1221.347
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    5    4    1
+    ## [2,]    3    4    1
+    ## [3,]    3    5    4
+    ## [4,]    2    5    1
+    ## [5,]    2    3    1
+    ## [6,]    2    3    5
+    ## 
+    ## $area
+    ## [1] 557.5055
+    ## 
+    ## $vol
+    ## [1] 290.3667
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    7    5    6
+    ##  [2,]    2    5    6
+    ##  [3,]    3    7    5
+    ##  [4,]    3   11    1
+    ##  [5,]    3   11    7
+    ##  [6,]    4    2    1
+    ##  [7,]    4    2    5
+    ##  [8,]    4    3    1
+    ##  [9,]    4    3    5
+    ## [10,]    8    7    6
+    ## [11,]    8   11    7
+    ## [12,]   10   11    1
+    ## [13,]   10    2    1
+    ## [14,]   10    8   11
+    ## [15,]   10    2    6
+    ## [16,]   10    8    6
+    ## 
+    ## $area
+    ## [1] 214.6605
+    ## 
+    ## $vol
+    ## [1] 168.8769
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]   10    8    2
+    ##  [2,]   10    8    7
+    ##  [3,]    3    2    5
+    ##  [4,]    3    7    5
+    ##  [5,]    3    8    2
+    ##  [6,]    3    8    7
+    ##  [7,]    1    2    5
+    ##  [8,]    1   10    2
+    ##  [9,]    6    7    5
+    ## [10,]    6   10    7
+    ## [11,]    6    1    5
+    ## [12,]    6    1   10
+    ## 
+    ## $area
+    ## [1] 107.2121
+    ## 
+    ## $vol
+    ## [1] 67.94861
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    1    9    7
+    ##  [2,]    3    1    9
+    ##  [3,]    5    3    9
+    ##  [4,]    6    1    7
+    ##  [5,]    6    3    1
+    ##  [6,]    6    5    7
+    ##  [7,]    6    5    3
+    ##  [8,]    4    9    7
+    ##  [9,]    4    5    7
+    ## [10,]    4    5    9
+    ## 
+    ## $area
+    ## [1] 5126684369
+    ## 
+    ## $vol
+    ## [1] 111209501354
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    1    5    3
+    ## [2,]    7    8    3
+    ## [3,]    7    1    3
+    ## [4,]    7    8    5
+    ## [5,]    7    1    5
+    ## [6,]    2    5    3
+    ## [7,]    2    8    3
+    ## [8,]    2    8    5
+    ## 
+    ## $area
+    ## [1] 49.01316
+    ## 
+    ## $vol
+    ## [1] 11.68856
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    9    1   10
+    ##  [2,]    6    5    3
+    ##  [3,]    6    5   10
+    ##  [4,]    7    1    3
+    ##  [5,]    7    9    1
+    ##  [6,]    7    5    3
+    ##  [7,]    7    9    5
+    ##  [8,]    4    5   10
+    ##  [9,]    4    9   10
+    ## [10,]    4    9    5
+    ## [11,]   11    6   10
+    ## [12,]   11    1    3
+    ## [13,]   11    6    3
+    ## [14,]    2    1   10
+    ## [15,]    2   11   10
+    ## [16,]    2   11    1
+    ## 
+    ## $area
+    ## [1] 85.54405
+    ## 
+    ## $vol
+    ## [1] 30.50919
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    7    1    2
+    ##  [2,]   11    7    2
+    ##  [3,]    3    1    2
+    ##  [4,]    3    1    5
+    ##  [5,]    3   11    2
+    ##  [6,]    8    1    5
+    ##  [7,]    4    7    5
+    ##  [8,]    4    3    5
+    ##  [9,]    4    3   11
+    ## [10,]    6    7    1
+    ## [11,]    6    8    1
+    ## [12,]    6    7    5
+    ## [13,]    6    8    5
+    ## [14,]   10   11    7
+    ## [15,]   10    4    7
+    ## [16,]   10    4   11
+    ## 
+    ## $area
+    ## [1] 209.9404
+    ## 
+    ## $vol
+    ## [1] 161.0421
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    5    2    1
+    ##  [2,]    7    5    2
+    ##  [3,]    3    2    1
+    ##  [4,]    4    7    9
+    ##  [5,]    4    7    2
+    ##  [6,]    4    3    9
+    ##  [7,]    4    3    2
+    ##  [8,]    8    7    9
+    ##  [9,]    8    7    5
+    ## [10,]   10    3    1
+    ## [11,]   10    3    9
+    ## [12,]   10    5    1
+    ## [13,]   10    8    9
+    ## [14,]   10    8    5
+    ## 
+    ## $area
+    ## [1] 10644.7
+    ## 
+    ## $vol
+    ## [1] 24483.68
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]   11    8    1
+    ##  [2,]    9   11    8
+    ##  [3,]    4    9   11
+    ##  [4,]   10    8    1
+    ##  [5,]   10    9    8
+    ##  [6,]    2   11    1
+    ##  [7,]    2    4   11
+    ##  [8,]    6   10    1
+    ##  [9,]    6    4    9
+    ## [10,]    6   10    9
+    ## [11,]    3    6    1
+    ## [12,]    3    6    4
+    ## [13,]    3    2    1
+    ## [14,]    3    2    4
+    ## 
+    ## $area
+    ## [1] 142.896
+    ## 
+    ## $vol
+    ## [1] 81.36266
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    1    2   11
+    ##  [2,]    7    1    2
+    ##  [3,]    3    2   11
+    ##  [4,]    3    9   11
+    ##  [5,]    3    7    2
+    ##  [6,]   10    1   11
+    ##  [7,]   10    9   11
+    ##  [8,]   10    7    1
+    ##  [9,]    5    3    9
+    ## [10,]    5    3    7
+    ## [11,]    8    5    9
+    ## [12,]    8    5    7
+    ## [13,]    8   10    9
+    ## [14,]    8   10    7
+    ## 
+    ## $area
+    ## [1] 112.6158
+    ## 
+    ## $vol
+    ## [1] 69.43801
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    2    9    8
+    ##  [2,]    7    2    8
+    ##  [3,]    3    9    8
+    ##  [4,]    3    9    5
+    ##  [5,]    4    9    5
+    ##  [6,]    4    2    9
+    ##  [7,]    4    7    5
+    ##  [8,]    4    7    2
+    ##  [9,]    6    7    5
+    ## [10,]    6    3    5
+    ## [11,]    6    7    8
+    ## [12,]    6    3    8
+    ## 
+    ## $area
+    ## [1] 740.9912
+    ## 
+    ## $vol
+    ## [1] 443.8513
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    1    4    2
+    ##  [2,]    3    8    2
+    ##  [3,]    3    1    2
+    ##  [4,]    3    1    8
+    ##  [5,]    7    8    2
+    ##  [6,]    6    7    8
+    ##  [7,]    6    1    8
+    ##  [8,]    6    1    4
+    ##  [9,]    5    6    4
+    ## [10,]    5    6    7
+    ## [11,]    5    4    2
+    ## [12,]    5    7    2
+    ## 
+    ## $area
+    ## [1] 51.04839
+    ## 
+    ## $vol
+    ## [1] 5.192115
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    6   10    1
+    ##  [2,]    5   10    1
+    ##  [3,]    5    6    1
+    ##  [4,]    8    5   10
+    ##  [5,]    4    6    7
+    ##  [6,]    4    5    6
+    ##  [7,]    2    8   10
+    ##  [8,]    2    6    7
+    ##  [9,]    2    6   10
+    ## [10,]    3    4    7
+    ## [11,]    3    4    5
+    ## [12,]    3    8    5
+    ## [13,]    3    2    7
+    ## [14,]    3    2    8
+    ## 
+    ## $area
+    ## [1] 1.034327e+13
+    ## 
+    ## $vol
+    ## [1] 2.115084e+17
+
+``` r
+RoachRun_Volume_Forage_Post <- RoachRun_VidSync_Post %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:33) {
+  if (i == 2) {
+    next
+  }
+  if (i == 6) {
+    next
+  }
+  RoachRun_Volume_Forage_Post %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+```
+
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    8    6    5
+    ##  [2,]    8    6    1
+    ##  [3,]    3    5    9
+    ##  [4,]    3    6    9
+    ##  [5,]    3    6    5
+    ##  [6,]    2    1    9
+    ##  [7,]    2    6    9
+    ##  [8,]    2    6    1
+    ##  [9,]    7    5    9
+    ## [10,]    7    8    9
+    ## [11,]    7    8    5
+    ## [12,]   10    1    9
+    ## [13,]   10    8    9
+    ## [14,]   10    8    1
+    ## 
+    ## $area
+    ## [1] 119.9607
+    ## 
+    ## $vol
+    ## [1] 63.76791
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    3    2    1
+    ##  [2,]    5    9    1
+    ##  [3,]    5    2    1
+    ##  [4,]    5    2    9
+    ##  [5,]    7    9    1
+    ##  [6,]    7    3    1
+    ##  [7,]    8    7    9
+    ##  [8,]    8    7    3
+    ##  [9,]    8    2    9
+    ## [10,]    8    3    2
+    ## 
+    ## $area
+    ## [1] 512.9874
+    ## 
+    ## $vol
+    ## [1] 349.3888
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    5    6    1
+    ##  [2,]    8    5    1
+    ##  [3,]    7    6    1
+    ##  [4,]    7    3    1
+    ##  [5,]    7    3    6
+    ##  [6,]    4    8    5
+    ##  [7,]    4    5    6
+    ##  [8,]    4    3    6
+    ##  [9,]    4    3    1
+    ## [10,]    4    8    1
+    ## 
+    ## $area
+    ## [1] 259.3286
+    ## 
+    ## $vol
+    ## [1] 168.6815
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    1    4    2
+    ## [2,]    1    4    5
+    ## [3,]    3    4    2
+    ## [4,]    3    4    5
+    ## [5,]    3    1    2
+    ## [6,]    3    1    5
+    ## 
+    ## $area
+    ## [1] 799.6886
+    ## 
+    ## $vol
+    ## [1] 522.9569
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    8   11    1
+    ##  [2,]    8    6    9
+    ##  [3,]    8   11    9
+    ##  [4,]   10    6    9
+    ##  [5,]   10    3    6
+    ##  [6,]    2   11    9
+    ##  [7,]    2   10    9
+    ##  [8,]    2   10    3
+    ##  [9,]    2   11    1
+    ## [10,]    2    3    1
+    ## [11,]    4    3    6
+    ## [12,]    4    8    6
+    ## [13,]    4    3    1
+    ## [14,]    4    8    1
+    ## 
+    ## $area
+    ## [1] 1892.83
+    ## 
+    ## $vol
+    ## [1] 3289.526
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    1    3    4
+    ##  [2,]    1    7    3
+    ##  [3,]    2    1    4
+    ##  [4,]    2    1    7
+    ##  [5,]    6    3    4
+    ##  [6,]   10    7    3
+    ##  [7,]   10    6    3
+    ##  [8,]   11    2    7
+    ##  [9,]   11   10    7
+    ## [10,]    5   10    6
+    ## [11,]    5   11   10
+    ## [12,]    5    6    4
+    ## [13,]    5    2    4
+    ## [14,]    5   11    2
+    ## 
+    ## $area
+    ## [1] 542.4528
+    ## 
+    ## $vol
+    ## [1] 664.3903
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    6    8    3
+    ##  [2,]    4    6    5
+    ##  [3,]    2    5    3
+    ##  [4,]    2    8    3
+    ##  [5,]    2    4    5
+    ##  [6,]    2    6    8
+    ##  [7,]    2    4    6
+    ##  [8,]    1    5    3
+    ##  [9,]    1    6    3
+    ## [10,]    1    6    5
+    ## 
+    ## $area
+    ## [1] 1249.83
+    ## 
+    ## $vol
+    ## [1] 889.1391
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    9   10    1
+    ##  [2,]    6    9    1
+    ##  [3,]    2   10    1
+    ##  [4,]    2   10    4
+    ##  [5,]    8   10    4
+    ##  [6,]    8    9    4
+    ##  [7,]    8    9   10
+    ##  [8,]    7    9    4
+    ##  [9,]    7    6    9
+    ## [10,]    3    2    4
+    ## [11,]    3    7    4
+    ## [12,]    3    7    6
+    ## [13,]    3    6    1
+    ## [14,]    3    2    1
+    ## 
+    ## $area
+    ## [1] 1672.994
+    ## 
+    ## $vol
+    ## [1] 2971.636
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    1    2    5
+    ## [2,]    1    3    5
+    ## [3,]    1    3    2
+    ## [4,]    4    2    5
+    ## [5,]    4    3    5
+    ## [6,]    4    3    2
+    ## 
+    ## $area
+    ## [1] 1071.343
+    ## 
+    ## $vol
+    ## [1] 954.9406
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    3    2    8
+    ##  [2,]    5    3    2
+    ##  [3,]    4    3    8
+    ##  [4,]    4    5    3
+    ##  [5,]    7    2    8
+    ##  [6,]    7    5    2
+    ##  [7,]    1    4    8
+    ##  [8,]    1    4    5
+    ##  [9,]    1    7    8
+    ## [10,]    1    7    5
+    ## 
+    ## $area
+    ## [1] 3888.976
+    ## 
+    ## $vol
+    ## [1] 7435.677
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    8   11    5
+    ##  [2,]    7   11    5
+    ##  [3,]    7    9    5
+    ##  [4,]   10    8    5
+    ##  [5,]   10    2    9
+    ##  [6,]   10    8   11
+    ##  [7,]   10    2   11
+    ##  [8,]    6    2    9
+    ##  [9,]    6    7    9
+    ## [10,]    6    2   11
+    ## [11,]    6    7   11
+    ## [12,]    3    9    5
+    ## [13,]    3   10    5
+    ## [14,]    3   10    9
+    ## 
+    ## $area
+    ## [1] 10.97871
+    ## 
+    ## $vol
+    ## [1] 1.046881
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    6    9    7
+    ##  [2,]    6    3    9
+    ##  [3,]    8    9    7
+    ##  [4,]    8    3    9
+    ##  [5,]    1    6    3
+    ##  [6,]    5    1    6
+    ##  [7,]   11    1    3
+    ##  [8,]   11    5    1
+    ##  [9,]   11    8    3
+    ## [10,]   11    8    7
+    ## [11,]   11    6    7
+    ## [12,]   11    5    6
+    ## 
+    ## $area
+    ## [1] 402.5808
+    ## 
+    ## $vol
+    ## [1] 484.3723
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    3   11    4
+    ##  [2,]    3   11    5
+    ##  [3,]   10   11    5
+    ##  [4,]    8    3    4
+    ##  [5,]    8    3    5
+    ##  [6,]    8   10    4
+    ##  [7,]    8   10    5
+    ##  [8,]    1   11    4
+    ##  [9,]    1   10   11
+    ## [10,]    9   10    4
+    ## [11,]    9    1    4
+    ## [12,]    9    1   10
+    ## 
+    ## $area
+    ## [1] 112.3787
+    ## 
+    ## $vol
+    ## [1] 66.51645
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    1    8    2
+    ## [2,]    5    8    2
+    ## [3,]    5    1    8
+    ## [4,]    7    5    2
+    ## [5,]    7    5    1
+    ## [6,]    3    1    2
+    ## [7,]    3    7    2
+    ## [8,]    3    7    1
+    ## 
+    ## $area
+    ## [1] 1106.741
+    ## 
+    ## $vol
+    ## [1] 1713.092
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    4   11    1
+    ##  [2,]    4    3   11
+    ##  [3,]    6    3   11
+    ##  [4,]    7   11    1
+    ##  [5,]    7    6   11
+    ##  [6,]    7    9    1
+    ##  [7,]    7    6    3
+    ##  [8,]    7    9    3
+    ##  [9,]    2    4    1
+    ## [10,]   10    4    3
+    ## [11,]   10    9    3
+    ## [12,]   10    2    4
+    ## [13,]   10    9    1
+    ## [14,]   10    2    1
+    ## 
+    ## $area
+    ## [1] 69.08229
+    ## 
+    ## $vol
+    ## [1] 35.375
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    2    4    1
+    ## [2,]    3    4    1
+    ## [3,]    3    2    1
+    ## [4,]    3    2    4
+    ## 
+    ## $area
+    ## [1] 65.82125
+    ## 
+    ## $vol
+    ## [1] 24.44687
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    2    1    4
+    ## [2,]    2    3    4
+    ## [3,]    2    3    1
+    ## [4,]    5    1    4
+    ## [5,]    5    3    4
+    ## [6,]    5    3    1
+    ## 
+    ## $area
+    ## [1] 420.8609
+    ## 
+    ## $vol
+    ## [1] 186.5721
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]   10    8    5
+    ##  [2,]   10    6    8
+    ##  [3,]    4    8    5
+    ##  [4,]    4    6    8
+    ##  [5,]    2   10    5
+    ##  [6,]    2   10    6
+    ##  [7,]    3    4    5
+    ##  [8,]    3    2    5
+    ##  [9,]    3    2    6
+    ## [10,]    1    4    6
+    ## [11,]    1    3    6
+    ## [12,]    1    3    4
+    ## 
+    ## $area
+    ## [1] 18.37455
+    ## 
+    ## $vol
+    ## [1] 2.92571
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    1    5    4
+    ##  [2,]    1    5    6
+    ##  [3,]    3    5    4
+    ##  [4,]    7    5    6
+    ##  [5,]    7    3    6
+    ##  [6,]    7    3    5
+    ##  [7,]   10    1    4
+    ##  [8,]   10    3    4
+    ##  [9,]   10    3    6
+    ## [10,]    9    1    6
+    ## [11,]    9   10    6
+    ## [12,]    9   10    1
+    ## 
+    ## $area
+    ## [1] 2478.292
+    ## 
+    ## $vol
+    ## [1] 5077.303
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    8    3    1
+    ## [2,]    5    8    1
+    ## [3,]    5    8    3
+    ## [4,]    2    5    1
+    ## [5,]    6    5    3
+    ## [6,]    6    2    5
+    ## [7,]    6    3    1
+    ## [8,]    6    2    1
+    ## 
+    ## $area
+    ## [1] 1744.045
+    ## 
+    ## $vol
+    ## [1] 981.0603
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    3    7    1
+    ##  [2,]    2    3    1
+    ##  [3,]    2    3    6
+    ##  [4,]    5    3    7
+    ##  [5,]    5    3    6
+    ##  [6,]    5    2    7
+    ##  [7,]    5    2    6
+    ##  [8,]    4    7    1
+    ##  [9,]    4    2    1
+    ## [10,]    4    2    7
+    ## 
+    ## $area
+    ## [1] 378.7271
+    ## 
+    ## $vol
+    ## [1] 183.0407
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    1    8    3
+    ##  [2,]    9    8    3
+    ##  [3,]    9   10    3
+    ##  [4,]    2   10    3
+    ##  [5,]    2    1    3
+    ##  [6,]    2    1   10
+    ##  [7,]    5    1    8
+    ##  [8,]    5    1   10
+    ##  [9,]    6    9   10
+    ## [10,]    6    5   10
+    ## [11,]    7    9    8
+    ## [12,]    7    6    9
+    ## [13,]    7    5    8
+    ## [14,]    7    6    5
+    ## 
+    ## $area
+    ## [1] 998.5678
+    ## 
+    ## $vol
+    ## [1] 1937.297
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]   11    7   10
+    ##  [2,]    1   10    2
+    ##  [3,]    1   11   10
+    ##  [4,]    1    7    2
+    ##  [5,]    9   10    2
+    ##  [6,]    5   11    7
+    ##  [7,]    5    1    7
+    ##  [8,]    5    1   11
+    ##  [9,]    8    7   10
+    ## [10,]    8    9   10
+    ## [11,]    8    7    2
+    ## [12,]    8    9    2
+    ## 
+    ## $area
+    ## [1] 473.3126
+    ## 
+    ## $vol
+    ## [1] 375.0011
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    8   10    2
+    ##  [2,]    4   10    5
+    ##  [3,]    4   10    2
+    ##  [4,]    3    8    2
+    ##  [5,]    3    4    2
+    ##  [6,]    7    3    8
+    ##  [7,]    7    3    4
+    ##  [8,]    9    8   10
+    ##  [9,]    9    7    8
+    ## [10,]    9   10    5
+    ## [11,]    9    7    5
+    ## [12,]   11    4    5
+    ## [13,]   11    7    5
+    ## [14,]   11    7    4
+    ## 
+    ## $area
+    ## [1] 13.01947
+    ## 
+    ## $vol
+    ## [1] 1.342989
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    3    4    1
+    ## [2,]    2    4    1
+    ## [3,]    2    3    1
+    ## [4,]    2    3    4
+    ## 
+    ## $area
+    ## [1] 562.2438
+    ## 
+    ## $vol
+    ## [1] 59.6388
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    6    9    8
+    ##  [2,]   10    3    2
+    ##  [3,]   10    9    8
+    ##  [4,]    1    3    2
+    ##  [5,]    1    6    2
+    ##  [6,]    1    6    3
+    ##  [7,]   11    3    8
+    ##  [8,]   11    6    8
+    ##  [9,]   11    6    3
+    ## [10,]    5    6    9
+    ## [11,]    5   10    9
+    ## [12,]    5    6    2
+    ## [13,]    5   10    2
+    ## [14,]    7    3    8
+    ## [15,]    7   10    8
+    ## [16,]    7   10    3
+    ## 
+    ## $area
+    ## [1] 437.9139
+    ## 
+    ## $vol
+    ## [1] 372.0408
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    5    4    9
+    ##  [2,]    5    3    1
+    ##  [3,]    5    3    4
+    ##  [4,]    7    3    1
+    ##  [5,]    8    7    9
+    ##  [6,]    8    7    3
+    ##  [7,]    8    4    9
+    ##  [8,]    8    3    4
+    ##  [9,]    6    7    1
+    ## [10,]    6    5    9
+    ## [11,]    6    7    9
+    ## [12,]    2    5    1
+    ## [13,]    2    6    1
+    ## [14,]    2    6    5
+    ## 
+    ## $area
+    ## [1] 1530.431
+    ## 
+    ## $vol
+    ## [1] 1851.15
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    1    3    2
+    ## [2,]    4    3    2
+    ## [3,]    4    1    2
+    ## [4,]    4    1    3
+    ## 
+    ## $area
+    ## [1] 202.643
+    ## 
+    ## $vol
+    ## [1] 40.04317
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    2   10    8
+    ## [2,]    2    4   10
+    ## [3,]    2   11    8
+    ## [4,]    2    4   11
+    ## [5,]    9   10    8
+    ## [6,]    9   11    8
+    ## [7,]    9    4   10
+    ## [8,]    9    4   11
+    ## 
+    ## $area
+    ## [1] 47.40703
+    ## 
+    ## $vol
+    ## [1] 8.250651
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    7    2    8
+    ##  [2,]    6    5    2
+    ##  [3,]    6    7    2
+    ##  [4,]    6    7    5
+    ##  [5,]    4    5    2
+    ##  [6,]    4    7    8
+    ##  [7,]    4    7    5
+    ##  [8,]    3    2    8
+    ##  [9,]    3    4    8
+    ## [10,]    3    4    2
+    ## 
+    ## $area
+    ## [1] 682.3959
+    ## 
+    ## $vol
+    ## [1] 889.4584
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    7    2    9
+    ##  [2,]    4    2    5
+    ##  [3,]    4    2    9
+    ##  [4,]    8    7    9
+    ##  [5,]    8    4    5
+    ##  [6,]    8    4    9
+    ##  [7,]    3    8    5
+    ##  [8,]    1    8    7
+    ##  [9,]    1    3    8
+    ## [10,]    1    3    5
+    ## [11,]    1    2    5
+    ## [12,]    1    7    2
+    ## 
+    ## $area
+    ## [1] 350.3904
+    ## 
+    ## $vol
+    ## [1] 316.6822
+
+``` r
+JesusToast_Volume_Forage_Post <- JesusToast_VidSync_Post %>%
+  arrange(objects) %>%
+  filter(!grepl("Surface_Shots.*", objects)) %>%
+  filter(!grepl("^Length.*", event)) %>%
+  filter(!grepl("^Attack.*", event)) %>%
+  filter(!grepl("^Nip.*", event)) %>%
+  filter(!grepl("Movement", event)) %>%
+  filter(!grepl("Surface_Strike", event)) %>%
+  mutate(subsample = str_extract(objects, "\\d")) %>%
+  mutate(index = str_extract(objects, "\\h\\d{1,2}")) %>%
+  mutate(species = str_extract(objects, "Omykiss|Okisutch")) %>%
+  transform(index = as.numeric(index),
+            subsample = as.numeric(subsample)) %>%
+  arrange(subsample, index, time) %>%
+  select(subsample, index, X, Y, Z) %>%
+  arrange(subsample, index)
+
+for (i in 1:16) {
+  if (i == 1) {
+    next
+  }
+  if (i == 3) {
+    next
+  }
+  if (i == 6) {
+    next
+  }
+  if (i == 8) {
+    next
+  }
+  if (i == 9) {
+    next
+  }
+  if (i == 10) {
+    next
+  }
+  if (i == 11) {
+    next
+  }
+  if (i == 12) {
+    next
+  }
+  if (i == 14) {
+    next
+  }
+  if (i == 16) {
+    next
+  }
+  JesusToast_Volume_Forage_Post %>%
+    filter(index == i) %>%
+    select(X, Y, Z) %>%
+    as.matrix() %>%
+    convhulln("FA") %>%
+    print()
+}
+```
+
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    5    3    6
+    ## [2,]    5    2    6
+    ## [3,]    1    2    3
+    ## [4,]    1    5    3
+    ## [5,]    1    5    2
+    ## [6,]    4    3    6
+    ## [7,]    4    2    6
+    ## [8,]    4    2    3
+    ## 
+    ## $area
+    ## [1] 190.1189
+    ## 
+    ## $vol
+    ## [1] 33.11553
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    5    2    4
+    ## [2,]    1    2    4
+    ## [3,]    1    5    4
+    ## [4,]    3    5    2
+    ## [5,]    3    1    2
+    ## [6,]    3    1    5
+    ## 
+    ## $area
+    ## [1] 116.9056
+    ## 
+    ## $vol
+    ## [1] 21.45202
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    4    3    1
+    ## [2,]    4    5    1
+    ## [3,]    4    5    3
+    ## [4,]    2    3    1
+    ## [5,]    2    5    1
+    ## [6,]    2    5    3
+    ## 
+    ## $area
+    ## [1] 115.5071
+    ## 
+    ## $vol
+    ## [1] 11.11414
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    4    1    3
+    ## [2,]    2    1    3
+    ## [3,]    2    4    3
+    ## [4,]    2    4    1
+    ## 
+    ## $area
+    ## [1] 1335.279
+    ## 
+    ## $vol
+    ## [1] 806.7012
+    ## 
+    ## $hull
+    ##      [,1] [,2] [,3]
+    ## [1,]    6    1    2
+    ## [2,]    5    6    1
+    ## [3,]    3    6    2
+    ## [4,]    3    5    6
+    ## [5,]    4    1    2
+    ## [6,]    4    5    1
+    ## [7,]    4    3    2
+    ## [8,]    4    3    5
+    ## 
+    ## $area
+    ## [1] 103.7999
+    ## 
+    ## $vol
+    ## [1] 30.99066
+    ## 
+    ## $hull
+    ##       [,1] [,2] [,3]
+    ##  [1,]    2    1   11
+    ##  [2,]    7    5   11
+    ##  [3,]    7    1   11
+    ##  [4,]    9    5   11
+    ##  [5,]    9    4    5
+    ##  [6,]    9    2   11
+    ##  [7,]    9    2    4
+    ##  [8,]    3    2    1
+    ##  [9,]    3    2    4
+    ## [10,]    3    4    5
+    ## [11,]    6    7    1
+    ## [12,]    6    3    1
+    ## [13,]    6    7    5
+    ## [14,]    6    3    5
+    ## 
+    ## $area
+    ## [1] 1758.649
+    ## 
+    ## $vol
+    ## [1] 2277.661
+
 ### Overlap in Forage Volumes
 
 Using the 'Hypervolume' package to calculate overlap in occupied volumes by the fish observed in each subsample.
@@ -3087,232 +6283,20 @@ Potential list of tools to use from this package: expectation\_convex get\_volum
 #### Pre-Augmentation
 
 ``` r
-for (i in 1:13) {
-  if (i == 3) {
-      next
-    }
-  if (i == 10) {
-      next
-    }
-    GolfBall_Volume_Pre %>%
-      filter(index == i) %>%
-      select(X, Y, Z) %>%
-      expectation_convex(check.memory = FALSE) %>%
-      print()
-  }
-```
+#for (i in 1:13) {
+ # if (i == 3) {
+  #    next
+   # }
+  #if (i == 10) {
+   #   next
+  #  }
+   # GolfBall_Volume_Pre %>%
+    #  filter(index == i) %>%
+     # select(X, Y, Z) %>%
+    #  expectation_convex(check.memory = FALSE) %>%
+    #  print()
+#  }
 
-    ## Calculating linear constraints...done.
-    ## Sampling 53958 random points via hit-and-run, 1000 per chunk...
-    ## 
-    ## done.
-    ## ***** Object of class Hypervolume *****
-    ## Name: Convex expectation for structure(c(37.850792, 38.178982, 37.495903, 35.734364, 35.492439, 
-    ## Method: Adaptive hit and run convex expectation
-    ## Number of data points (after weighting): 11
-    ## Dimensionality: 3
-    ## Volume: 3.572776
-    ## Random point density: 15102.540403
-    ## Number of random points: 53958
-    ## Random point values:
-    ##  min: 1.000
-    ##  mean: 1.000
-    ##  median: 1.000
-    ##  max:1.000
-    ## Parameters:
-    ##  (none)
-    ## Calculating linear constraints...done.
-    ## Sampling 53958 random points via hit-and-run, 1000 per chunk...
-    ## 
-    ## done.
-    ## ***** Object of class Hypervolume *****
-    ## Name: Convex expectation for structure(c(25.511185, 25.525606, 25.346043, 25.281542, 25.349791, 
-    ## Method: Adaptive hit and run convex expectation
-    ## Number of data points (after weighting): 11
-    ## Dimensionality: 3
-    ## Volume: 0.005369
-    ## Random point density: 10050412.574196
-    ## Number of random points: 53958
-    ## Random point values:
-    ##  min: 1.000
-    ##  mean: 1.000
-    ##  median: 1.000
-    ##  max:1.000
-    ## Parameters:
-    ##  (none)
-    ## Calculating linear constraints...done.
-    ## Sampling 53958 random points via hit-and-run, 1000 per chunk...
-    ## 
-    ## done.
-    ## ***** Object of class Hypervolume *****
-    ## Name: Convex expectation for structure(c(25.059107, 25.185759, 25.236544, 25.3286, 25.387087, 
-    ## Method: Adaptive hit and run convex expectation
-    ## Number of data points (after weighting): 11
-    ## Dimensionality: 3
-    ## Volume: 0.010560
-    ## Random point density: 5109527.568638
-    ## Number of random points: 53958
-    ## Random point values:
-    ##  min: 1.000
-    ##  mean: 1.000
-    ##  median: 1.000
-    ##  max:1.000
-    ## Parameters:
-    ##  (none)
-    ## Calculating linear constraints...done.
-    ## Sampling 53958 random points via hit-and-run, 1000 per chunk...
-    ## 
-    ## done.
-    ## ***** Object of class Hypervolume *****
-    ## Name: Convex expectation for structure(c(25.34897, 25.42646, 25.363958, 25.197002, 25.156748, 
-    ## Method: Adaptive hit and run convex expectation
-    ## Number of data points (after weighting): 11
-    ## Dimensionality: 3
-    ## Volume: 0.001130
-    ## Random point density: 47763352.560065
-    ## Number of random points: 53958
-    ## Random point values:
-    ##  min: 1.000
-    ##  mean: 1.000
-    ##  median: 1.000
-    ##  max:1.000
-    ## Parameters:
-    ##  (none)
-    ## Calculating linear constraints...done.
-    ## Sampling 53958 random points via hit-and-run, 1000 per chunk...
-    ## 
-    ## done.
-    ## ***** Object of class Hypervolume *****
-    ## Name: Convex expectation for structure(c(42.212994, 37.165382, 36.612492, 40.051975, 38.21645, 
-    ## Method: Adaptive hit and run convex expectation
-    ## Number of data points (after weighting): 6
-    ## Dimensionality: 3
-    ## Volume: 16.181097
-    ## Random point density: 3334.631720
-    ## Number of random points: 53958
-    ## Random point values:
-    ##  min: 1.000
-    ##  mean: 1.000
-    ##  median: 1.000
-    ##  max:1.000
-    ## Parameters:
-    ##  (none)
-    ## Calculating linear constraints...done.
-    ## Sampling 53958 random points via hit-and-run, 1000 per chunk...
-    ## 
-    ## done.
-    ## ***** Object of class Hypervolume *****
-    ## Name: Convex expectation for structure(c(-37.342072, -37.40937, -37.436523, -37.699223, -37.347225, 
-    ## Method: Adaptive hit and run convex expectation
-    ## Number of data points (after weighting): 10
-    ## Dimensionality: 3
-    ## Volume: 1298.271289
-    ## Random point density: 41.561421
-    ## Number of random points: 53958
-    ## Random point values:
-    ##  min: 1.000
-    ##  mean: 1.000
-    ##  median: 1.000
-    ##  max:1.000
-    ## Parameters:
-    ##  (none)
-    ## Calculating linear constraints...done.
-    ## Sampling 53958 random points via hit-and-run, 1000 per chunk...
-    ## 
-    ## done.
-    ## ***** Object of class Hypervolume *****
-    ## Name: Convex expectation for structure(c(25.155287, 25.285204, 24.950783, 25.292545, 21.626997, 
-    ## Method: Adaptive hit and run convex expectation
-    ## Number of data points (after weighting): 11
-    ## Dimensionality: 3
-    ## Volume: 17.897031
-    ## Random point density: 3014.913439
-    ## Number of random points: 53958
-    ## Random point values:
-    ##  min: 1.000
-    ##  mean: 1.000
-    ##  median: 1.000
-    ##  max:1.000
-    ## Parameters:
-    ##  (none)
-    ## Calculating linear constraints...done.
-    ## Sampling 53958 random points via hit-and-run, 1000 per chunk...
-    ## 
-    ## done.
-    ## ***** Object of class Hypervolume *****
-    ## Name: Convex expectation for structure(c(44.372398, 109.714851, 40.734455, 41.77066, -29.070122, 
-    ## Method: Adaptive hit and run convex expectation
-    ## Number of data points (after weighting): 4
-    ## Dimensionality: 3
-    ## Volume: 22.316425
-    ## Random point density: 2417.860372
-    ## Number of random points: 53958
-    ## Random point values:
-    ##  min: 1.000
-    ##  mean: 1.000
-    ##  median: 1.000
-    ##  max:1.000
-    ## Parameters:
-    ##  (none)
-    ## Calculating linear constraints...done.
-    ## Sampling 53958 random points via hit-and-run, 1000 per chunk...
-    ## 
-    ## done.
-    ## ***** Object of class Hypervolume *****
-    ## Name: Convex expectation for structure(c(-0.106614, -3.117003, -6.070379, -9.2648, -12.205731, 
-    ## Method: Adaptive hit and run convex expectation
-    ## Number of data points (after weighting): 11
-    ## Dimensionality: 3
-    ## Volume: 34.668470
-    ## Random point density: 1556.399813
-    ## Number of random points: 53958
-    ## Random point values:
-    ##  min: 1.000
-    ##  mean: 1.000
-    ##  median: 1.000
-    ##  max:1.000
-    ## Parameters:
-    ##  (none)
-    ## Calculating linear constraints...done.
-    ## Sampling 53958 random points via hit-and-run, 1000 per chunk...
-    ## 
-    ## done.
-    ## ***** Object of class Hypervolume *****
-    ## Name: Convex expectation for structure(c(-37.238571, -37.896358, -37.231556, -37.174625, -37.438675, 
-    ## Method: Adaptive hit and run convex expectation
-    ## Number of data points (after weighting): 9
-    ## Dimensionality: 3
-    ## Volume: 0.194245
-    ## Random point density: 277783.887519
-    ## Number of random points: 53958
-    ## Random point values:
-    ##  min: 1.000
-    ##  mean: 1.000
-    ##  median: 1.000
-    ##  max:1.000
-    ## Parameters:
-    ##  (none)
-    ## Calculating linear constraints...done.
-    ## Sampling 53958 random points via hit-and-run, 1000 per chunk...
-    ## 
-    ## done.
-    ## ***** Object of class Hypervolume *****
-    ## Name: Convex expectation for structure(c(-29.73686, -31.581978, -25.707537, -9.604844, 1.236114, 
-    ## Method: Adaptive hit and run convex expectation
-    ## Number of data points (after weighting): 5
-    ## Dimensionality: 3
-    ## Volume: 2627.808415
-    ## Random point density: 20.533460
-    ## Number of random points: 53958
-    ## Random point values:
-    ##  min: 1.000
-    ##  mean: 1.000
-    ##  median: 1.000
-    ##  max:1.000
-    ## Parameters:
-    ##  (none)
-
-``` r
 #look into making a function or creating a list (i.e. list1 = c(HV1, HV2, HV3, etc.) for each forloop scenario)
 
 HV2 <- GolfBall_Volume_Pre %>%
@@ -3379,7 +6363,7 @@ str(test)
     ##   .. .. .. ..@ Volume             : num 0.00537
     ##   .. .. .. ..@ PointDensity       : num 10050413
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.3 25.3 25.4 25.4 25.4 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.3 25.3 25.4 25.2 25.3 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
@@ -3395,7 +6379,7 @@ str(test)
     ##   .. .. .. ..@ Volume             : num 0.0106
     ##   .. .. .. ..@ PointDensity       : num 5109528
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.3 25.4 25.4 25.4 25.3 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.2 25.2 25.3 25.2 25.2 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
@@ -3405,53 +6389,53 @@ str(test)
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.00279
-    ##   .. .. .. ..@ PointDensity       : num 10466636
+    ##   .. .. .. ..@ Volume             : num 0.00289
+    ##   .. .. .. ..@ PointDensity       : num 10339729
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:29224, 1:3] 25.4 25.3 25.3 25.3 25.3 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:29839, 1:3] 25.3 25.4 25.3 25.4 25.3 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:29224] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:29839] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Union       :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Union of (Convex expectation for structure(c(25.511185, 25.525606, 25.346043, 25.281542, 25.349791, , Convex ex"| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.0131
-    ##   .. .. .. ..@ PointDensity       : num 5056826
+    ##   .. .. .. ..@ Volume             : num 0.013
+    ##   .. .. .. ..@ PointDensity       : num 5082745
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:66431, 1:3] 25.2 25.5 25.4 25.2 25.2 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:66295, 1:3] 25.2 25.5 25.4 25.4 25.5 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:66431] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:66295] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Unique_1    :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Unique component of (Convex expectation for structure(c(25.511185, 25.525606, 25.346043, 25.281542, 25.349791, "| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.00258
+    ##   .. .. .. ..@ Volume             : num 0.00248
     ##   .. .. .. ..@ PointDensity       : num 5109397
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:13165, 1:3] 25.2 25.5 25.4 25.2 25.2 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:12686, 1:3] 25.2 25.5 25.4 25.4 25.5 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:13165] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:12686] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Unique_2    :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Unique component of (Convex expectation for structure(c(25.059107, 25.185759, 25.236544, 25.3286, 25.387087, ) "| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.00777
-    ##   .. .. .. ..@ PointDensity       : num 5020493
+    ##   .. .. .. ..@ Volume             : num 0.00767
+    ##   .. .. .. ..@ PointDensity       : num 5064101
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:39000, 1:3] 25.4 25.2 25.3 25.3 25.3 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:38864, 1:3] 25.3 25.3 25.4 25.4 25.3 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:39000] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:38864] 1 1 1 1 1 1 1 1 1 1 ...
 
 ``` r
 myvol <- test@HVList$Intersection@Volume
