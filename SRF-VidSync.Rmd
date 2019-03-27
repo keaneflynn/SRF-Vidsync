@@ -677,7 +677,7 @@ SRF_Volume_Dataset <-
   filter(!species == "Hsymmetricus")
 SRF_Volume_Dataset
 ```
-##Final Dataset Creation
+##Final Fish Dataset Creation
 ```{r}
 Fish_Dataset <- Behavior_Types_Dataset %>% 
   left_join(Max_Fish_Tally_Dataset, by = c("date", "BACI_date", "site", "sample_event", "species", "subsample", "index", "time")) %>% 
@@ -1247,67 +1247,16 @@ for (i in 1:16) {
 }
 ```
 
-###Overlap in Forage Volumes
-Using the 'Hypervolume' package to calculate overlap in occupied volumes by the fish observed in each subsample.
+##Hydrology
 
-Potential list of tools to use from this package: 
-expectation_convex
-get_volume
-get_centroid
-
-####Pre-Augmentation
+###Importing Datasets
 ```{r}
-#for (i in 1:13) {
- # if (i == 3) {
-  #    next
-   # }
-  #if (i == 10) {
-   #   next
-  #  }
-   # GolfBall_Volume_Pre %>%
-    #  filter(index == i) %>%
-     # select(X, Y, Z) %>%
-    #  expectation_convex(check.memory = FALSE) %>%
-    #  print()
-#  }
+Flow_Dataset <-
+  read_csv(file = "Hydrology-Data/TU_FlowData - Sheet1.csv") %>% 
+  filter(Date >= "2018-01-01") %>% 
+  group_by(Date) %>% 
+  mutate(Streamflow_cfs = mean(Streamflow_cfs)*448.83) %>% 
+  distinct(Streamflow_cfs) 
 
-#look into making a function or creating a list (i.e. list1 = c(HV1, HV2, HV3, etc.) for each forloop scenario)
-
-HV2 <- GolfBall_Volume_Pre %>%
-  filter(index == "2") %>%
-  select(X, Y, Z) %>%
-  as.matrix() %>%
-  expectation_convex(check.memory = FALSE)
-
-HV4 <- GolfBall_Volume_Pre %>%
-  filter(index == "4") %>%
-  select(X, Y, Z) %>%
-  expectation_convex(check.memory = FALSE) 
-
-test <- hypervolume_set(HV2, HV4, num.points.max = NULL,
-verbose = TRUE, check.memory = FALSE, distance.factor = 1)
-
-str(test)
-
-myvol <- test@HVList$Intersection@Volume
-
-get_volume(HV4)
-```
-####Post-Augmentation
-```{r}
-
-```
-
-#Graph Creation
-
-##Volume Graphs
-```{r}
-Volume_Plot <- 
-  ggplot(Fish_Dataset, aes(x = site, y = volume_occupied_all_cm3)) +
-  geom_col(width = 0.4) + 
-  facet_grid(.~sample_event1) +
-  xlab("Site") +
-  ylab("Number of Forage Events") +
-  scale_fill_discrete(name = "Foraging Mode")
-Volume_Plot
+RCT_Dataset <- 
 ```
