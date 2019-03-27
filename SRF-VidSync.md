@@ -29,13 +29,13 @@ library(readr)
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ───────────────────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
     ## ✔ tibble  1.4.2     ✔ stringr 1.3.1
     ## ✔ tidyr   0.8.1     ✔ forcats 0.3.0
 
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ──────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
@@ -6368,7 +6368,7 @@ str(test)
     ##   .. .. .. ..@ Volume             : num 0.00537
     ##   .. .. .. ..@ PointDensity       : num 10050413
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.4 25.3 25.3 25.4 25.4 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.3 25.3 25.3 25.2 25.3 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
@@ -6384,7 +6384,7 @@ str(test)
     ##   .. .. .. ..@ Volume             : num 0.0106
     ##   .. .. .. ..@ PointDensity       : num 5109528
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.3 25.3 25.3 25.3 25.3 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:53958, 1:3] 25.1 25.2 25.2 25.2 25.3 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
@@ -6394,53 +6394,53 @@ str(test)
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.00285
-    ##   .. .. .. ..@ PointDensity       : num 10343765
+    ##   .. .. .. ..@ Volume             : num 0.00288
+    ##   .. .. .. ..@ PointDensity       : num 10430963
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:29466, 1:3] 25.3 25.3 25.3 25.2 25.2 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:30039, 1:3] 25.2 25.2 25.3 25.2 25.1 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:29466] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:30039] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Union       :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Union of (Convex expectation for structure(c(25.511185, 25.525606, 25.346043, 25.281542, 25.349791, , Convex ex"| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.0131
-    ##   .. .. .. ..@ PointDensity       : num 5082286
+    ##   .. .. .. ..@ Volume             : num 0.013
+    ##   .. .. .. ..@ PointDensity       : num 5062603
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:66478, 1:3] 25.4 25.4 25.4 25.4 25.4 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:66063, 1:3] 25.4 25.3 25.4 25.3 25.2 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:66478] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:66063] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Unique_1    :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Unique component of (Convex expectation for structure(c(25.511185, 25.525606, 25.346043, 25.281542, 25.349791, "| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.00252
+    ##   .. .. .. ..@ Volume             : num 0.00249
     ##   .. .. .. ..@ PointDensity       : num 5109397
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:12876, 1:3] 25.4 25.4 25.4 25.4 25.4 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:12717, 1:3] 25.4 25.3 25.4 25.3 25.2 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:12876] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:12717] 1 1 1 1 1 1 1 1 1 1 ...
     ##   .. ..$ Unique_2    :Formal class 'Hypervolume' [package "hypervolume"] with 9 slots
     ##   .. .. .. ..@ Name               : chr "Unique component of (Convex expectation for structure(c(25.059107, 25.185759, 25.236544, 25.3286, 25.387087, ) "| __truncated__
     ##   .. .. .. ..@ Method             : chr "Set operations"
     ##   .. .. .. ..@ Data               : num [1, 1:3] NaN NaN NaN
     ##   .. .. .. ..@ Dimensionality     : int 3
-    ##   .. .. .. ..@ Volume             : num 0.00771
-    ##   .. .. .. ..@ PointDensity       : num 5063411
+    ##   .. .. .. ..@ Volume             : num 0.00768
+    ##   .. .. .. ..@ PointDensity       : num 5030024
     ##   .. .. .. ..@ Parameters         : list()
-    ##   .. .. .. ..@ RandomPoints       : num [1:39047, 1:3] 25.4 25.3 25.2 25.3 25.4 ...
+    ##   .. .. .. ..@ RandomPoints       : num [1:38633, 1:3] 25.3 25.4 25.3 25.3 25.4 ...
     ##   .. .. .. .. ..- attr(*, "dimnames")=List of 2
     ##   .. .. .. .. .. ..$ : NULL
     ##   .. .. .. .. .. ..$ : chr [1:3] "X" "Y" "Z"
-    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:39047] 1 1 1 1 1 1 1 1 1 1 ...
+    ##   .. .. .. ..@ ValueAtRandomPoints: num [1:38633] 1 1 1 1 1 1 1 1 1 1 ...
 
 ``` r
 myvol <- test@HVList$Intersection@Volume

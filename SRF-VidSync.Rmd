@@ -719,8 +719,8 @@ for (i in 1:13) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 
 HalfTire_Volume_Pre <- HalfTire_VidSync_Pre %>%
@@ -741,8 +741,8 @@ for (i in 1:8) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 
 RoachRun_Volume_Pre <- RoachRun_VidSync_Pre %>%
@@ -775,8 +775,8 @@ for (i in 1:19) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 
 JesusToast_Volume_Pre <- JesusToast_VidSync_Pre %>%
@@ -812,8 +812,8 @@ for (i in 1:13) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 ```
 ####Post-Augmentation: All Behaviors
@@ -836,8 +836,8 @@ for (i in 1:6) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 
 HalfTire_Volume_Post <- HalfTire_VidSync_Post %>%
@@ -885,8 +885,8 @@ for (i in 1:48) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 
 JesusToast_Volume_Post <- JesusToast_VidSync_Post %>%
@@ -928,8 +928,8 @@ for (i in 1:16) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 
 RoachRun_Volume_Post <- RoachRun_VidSync_Post %>% 
@@ -950,8 +950,8 @@ for (i in 1:33) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 ```
 ####Pre-Augmentation: Foraging Modes
@@ -979,8 +979,8 @@ for (i in a) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 
 HalfTire_Volume_Forage_Pre <- HalfTire_VidSync_Pre %>%
@@ -1005,8 +1005,8 @@ for (i in 1:8) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 
 RoachRun_Volume_Forage_Pre <- RoachRun_VidSync_Pre %>%
@@ -1043,8 +1043,8 @@ for (i in 1:19) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 
 JesusToast_Volume_Forage_Pre <- JesusToast_VidSync_Pre %>%
@@ -1084,8 +1084,8 @@ for (i in 1:13) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 ```
 
@@ -1154,8 +1154,8 @@ for (i in 1:48) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 
 RoachRun_Volume_Forage_Post <- RoachRun_VidSync_Post %>%
@@ -1186,8 +1186,8 @@ for (i in 1:33) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 
 JesusToast_Volume_Forage_Post <- JesusToast_VidSync_Post %>%
@@ -1242,8 +1242,8 @@ for (i in 1:16) {
     filter(index == i) %>%
     select(X, Y, Z) %>%
     as.matrix() %>%
-    convhulln("FA") %>%
-    print()
+    convhulln("FA") #%>%
+    #
 }
 ```
 
@@ -1296,4 +1296,18 @@ get_volume(HV4)
 ####Post-Augmentation
 ```{r}
 
+```
+
+#Graph Creation
+
+##Volume Graphs
+```{r}
+Volume_Plot <- 
+  ggplot(Fish_Dataset, aes(x = site, y = volume_occupied_all_cm3)) +
+  geom_col(width = 0.4) + 
+  facet_grid(.~sample_event1) +
+  xlab("Site") +
+  ylab("Number of Forage Events") +
+  scale_fill_discrete(name = "Foraging Mode")
+Volume_Plot
 ```
