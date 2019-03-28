@@ -1255,8 +1255,26 @@ Flow_Dataset <-
   read_csv(file = "Hydrology-Data/TU_FlowData - Sheet1.csv") %>% 
   filter(Date >= "2018-01-01") %>% 
   group_by(Date) %>% 
-  mutate(Streamflow_cfs = mean(Streamflow_cfs)*448.83) %>% 
-  distinct(Streamflow_cfs) 
+  mutate(Streamflow_gpm = mean(Streamflow_cfs)*448.83) %>% 
+  distinct(Streamflow_gpm) 
 
 RCT_Dataset <- 
+  read_csv(file = "Hydrology-Data/POR_MovementStudyData_Analysis_withER - RCT.csv") %>% 
+  select(SampleDate, RCT_RR, RCT_BB, RCT_HT) %>% 
+  group_by(SampleDate) %>% 
+  summarize(RCT_RR = mean(RCT_RR), RCT_BB = mean(RCT_BB), RCT_HT = mean(RCT_HT))
+
+Augmentation_Dataset <- 
+  read_csv(file = "Hydrology-Data/PorterCreek_AugmentationData.csv") %>% 
+  select(Date, avg_gpm) %>% 
+  filter(!Date == "Grand Total") %>% 
+  setnames(old = "avg_gpm", new = "Augmentation_gpm")
+Augmentation_Dataset$Date <- base::as.Date(Augmentation_Dataset$Date, "%m/%d/%y")
+
+Hydrology_Dataset <- RCT_Dataset %>% 
+  left_join(Flow_Dataset, by = c("SampleDate" = "Date")) %>% 
+  left_join(Augmentation_Dataset, by = c("SampleDate" = "Date")) %>% 
+  filter(!Streamflow_gpm == "NA") %>% 
+  filter(!Augmentation_gpm == "NA")
+Hydrology_Dataset
 ```
