@@ -1256,7 +1256,8 @@ Flow_Dataset <-
   filter(Date >= "2018-01-01") %>% 
   group_by(Date) %>% 
   mutate(Streamflow_gpm = mean(Streamflow_cfs)*448.83) %>% 
-  distinct(Streamflow_gpm) 
+  distinct(Streamflow_gpm, .keep_all = TRUE) %>% 
+  select(Streamflow_cfs, Streamflow_gpm, WaterTemp_C)
 
 RCT_Dataset <- 
   read_csv(file = "Hydrology-Data/POR_MovementStudyData_Analysis_withER - RCT.csv") %>% 
@@ -1295,7 +1296,50 @@ Hydrology_Dataset
 
 ###Hydrology Graphs
 ```{r}
-ggplot(Hydrology_Dataset, aes(x = Date, y = Streamflow_cfs)) + geom_line()
+Natural_PorterCreek_Hydrograph <- 
+  ggplot(Hydrology_Dataset) + 
+  geom_line(aes(x = Date, y = (Streamflow_cfs - Augmentation_cfs))) +
+  xlab("Date") +
+  ylab("Discharge in Cubic Feet per Second (CFS)") +
+  ggtitle("Porter Creek Natural Hydrograph 2018") +
+  theme(plot.title = element_text(hjust = 0.5, size = 20, face = "bold"))
+Natural_PorterCreek_Hydrograph
+
+PorterCreek_Augmentation <- 
+  ggplot(Hydrology_Dataset) +
+  geom_line(aes(x = Date, y = Augmentation_cfs)) +
+  xlab("Date") +
+  ylab("Cubic Feet per Second (CFS)") +
+  ggtitle("Porter Creek Augmentation Discharge (Q) 2018") +
+  theme(plot.title = element_text(hjust = 0.5, size = 20, face = "bold"))
+PorterCreek_Augmentation
+
+Augmented_PorterCreek_Hydrograph <- 
+  ggplot(Hydrology_Dataset) +
+  geom_line(aes(x = Date, y = Streamflow_cfs)) +
+  xlab("Date") +
+  ylab("Discharge in Cubic Feet per Second (CFS)") +
+  ggtitle("Porter Creek Total Discharge (Q) 2018") +
+  theme(plot.title = element_text(hjust = 0.5, size = 20, face = "bold"))
+Augmented_PorterCreek_Hydrograph
+
+RCT_DO_Graph <- 
+  ggplot(Hydrology_Dataset) +
+  geom_smooth(aes(x = RCT_RR, y = DO_mg_L, color = "Site 18.5")) +
+  geom_smooth(aes(x = RCT_BB, y = DO_mg_L, color = "Site 18.6")) +
+  geom_smooth(aes(x = RCT_HT, y = DO_mg_L, color = "Site 18.8")) +
+  scale_x_reverse() +
+  labs(color = "Study Site") +
+  xlab("Riffle Crest Thalweg (RCT) Depth in cm") +
+  ylab("Dissolve Oxygen (mg/L)") +
+  ggtitle("Effect of RCT Depth on Dissolved Oxygen Content") +
+  theme(plot.title = element_text(hjust = 0.5, size = 18, face = "bold"))
+RCT_DO_Graph
+
+WaterTemp_PorterCreek <- 
+  ggplot(Hydrology_Dataset) +
+  geom_line(aes(x = Date, y = WaterTemp_C))
+WaterTemp_PorterCreek
 ```
 
 #Final SRF Dataset
