@@ -1271,10 +1271,36 @@ Augmentation_Dataset <-
   setnames(old = "avg_gpm", new = "Augmentation_gpm")
 Augmentation_Dataset$Date <- base::as.Date(Augmentation_Dataset$Date, "%m/%d/%y")
 
+DO_Dataset <- 
+  read_csv(file = "Hydrology-Data/Porter_BACI_DO_Data.csv") %>% 
+  select(Date, Value_Adj) %>% 
+  setnames(old = "Value_Adj", new ="DO_mg_L") %>% 
+  group_by(Date) %>% 
+  na.omit() %>% 
+  summarize(DO_mg_L = mean(DO_mg_L))
+DO_Dataset$Date <- base::as.Date(DO_Dataset$Date, "%m/%d/%Y")
+
 Hydrology_Dataset <- RCT_Dataset %>% 
   left_join(Flow_Dataset, by = c("SampleDate" = "Date")) %>% 
   left_join(Augmentation_Dataset, by = c("SampleDate" = "Date")) %>% 
+  left_join(DO_Dataset, by = c("SampleDate" = "Date")) %>% 
   filter(!Streamflow_gpm == "NA") %>% 
-  filter(!Augmentation_gpm == "NA")
+  filter(!Augmentation_gpm == "NA") %>% 
+  filter(!DO_mg_L == "NA") %>% 
+  mutate(Streamflow_cfs = Streamflow_gpm/448.83) %>% 
+  mutate(Augmentation_cfs = Augmentation_gpm/448.83) %>% 
+  setnames(old = "SampleDate", new = "Date")
 Hydrology_Dataset
+```
+
+###Hydrology Graphs
+```{r}
+ggplot(Hydrology_Dataset, aes(x = Date, y = Streamflow_cfs)) + geom_line()
+```
+
+#Final SRF Dataset
+```{r}
+Final_SRF_Dataset <- Fish_Dataset %>% 
+  left_join(Hydrology_Dataset, by = c("date" = "Date"))
+Final_SRF_Dataset
 ```
