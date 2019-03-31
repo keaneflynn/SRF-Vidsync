@@ -649,7 +649,10 @@ Forage_Types_Plot <-
   facet_grid(.~sample_event1) +
   xlab("Site") +
   ylab("Number of Forage Events") +
-  scale_fill_discrete(name = "Foraging Mode")
+  ggtitle("Number and Proportion of Forage Mode Types") +
+  scale_fill_manual(values = c("black", "darkblue", "goldenrod")) +
+  guides(fill=guide_legend(title="Foraging Modes")) +
+  theme(legend.title = element_text(size = 12, face = "bold"), plot.title = element_text(size = 18, face = "bold", hjust = 0.5), axis.title.x = element_text(size = 12, face = "bold"), axis.title.y = element_text(size = 12, face = "bold"))
 Forage_Types_Plot
 
 Normalized_Forage_Types_Plot <- 
@@ -659,7 +662,6 @@ Normalized_Forage_Types_Plot <-
   xlab("Site") +
   ylab("Proportion of Fish Foraging") +
   scale_fill_discrete(name = "Foraging Mode")
-Normalized_Forage_Types_Plot
 ```
 ###Volume Occupied Dataset
 Using Delaunay Triangulation to calculate the volume each fish is occupying during each subsample.
@@ -1272,22 +1274,33 @@ Augmentation_Dataset <-
   setnames(old = "avg_gpm", new = "Augmentation_gpm")
 Augmentation_Dataset$Date <- base::as.Date(Augmentation_Dataset$Date, "%m/%d/%y")
 
-DO_Dataset <- 
+DO_Dataset_Impacted <- 
   read_csv(file = "Hydrology-Data/Porter_BACI_DO_Data.csv") %>% 
   select(Date, Value_Adj) %>% 
   setnames(old = "Value_Adj", new ="DO_mg_L") %>% 
   group_by(Date) %>% 
   na.omit() %>% 
-  summarize(DO_mg_L = mean(DO_mg_L))
-DO_Dataset$Date <- base::as.Date(DO_Dataset$Date, "%m/%d/%Y")
+  summarize(DO_Impacted_mg_L = mean(DO_mg_L))
+DO_Dataset_Impacted$Date <- base::as.Date(DO_Dataset$Date, "%m/%d/%Y")
+
+DO_Dataset_Control <- 
+  read_csv(file = "Hydrology-Data/Porter_POFW_DO_Data.csv") %>% 
+  select(Date, Value_Adj) %>% 
+  setnames(old = "Value_Adj", new ="DO_mg_L") %>% 
+  group_by(Date) %>% 
+  na.omit() %>% 
+  summarize(DO_Control_mg_L = mean(DO_mg_L))
+DO_Dataset_Control$Date <- base::as.Date(DO_Dataset$Date, "%m/%d/%Y") 
 
 Hydrology_Dataset <- RCT_Dataset %>% 
   left_join(Flow_Dataset, by = c("SampleDate" = "Date")) %>% 
   left_join(Augmentation_Dataset, by = c("SampleDate" = "Date")) %>% 
-  left_join(DO_Dataset, by = c("SampleDate" = "Date")) %>% 
+  left_join(DO_Dataset_Control, by = c("SampleDate" = "Date")) %>% 
+  left_join(DO_Dataset_Impacted, by = c("SampleDate" = "Date")) %>%
   filter(!Streamflow_gpm == "NA") %>% 
   filter(!Augmentation_gpm == "NA") %>% 
-  filter(!DO_mg_L == "NA") %>% 
+  filter(!DO_Control_mg_L == "NA") %>% 
+  filter(!DO_Impacted_mg_L == "NA") %>% 
   mutate(Streamflow_cfs = Streamflow_gpm/448.83) %>% 
   mutate(Augmentation_cfs = Augmentation_gpm/448.83) %>% 
   setnames(old = "SampleDate", new = "Date")
@@ -1332,8 +1345,8 @@ RCT_DO_Graph <-
   labs(color = "Study Site") +
   xlab("Riffle Crest Thalweg (RCT) Depth in cm") +
   ylab("Dissolve Oxygen (mg/L)") +
-  ggtitle("Effect of RCT Depth on Dissolved Oxygen Content") +
-  theme(plot.title = element_text(hjust = 0.5, size = 18, face = "bold"))
+  ggtitle("Effect of Upstream RCT Depth on Dissolved Oxygen Content") +
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"))
 RCT_DO_Graph
 
 WaterTemp_PorterCreek <- 
