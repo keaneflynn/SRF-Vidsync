@@ -1338,9 +1338,9 @@ Augmented_PorterCreek_Hydrograph
 
 RCT_DO_Graph <- 
   ggplot(Hydrology_Dataset) +
-  geom_smooth(aes(x = RCT_RR, y = DO_mg_L, color = "Site 18.5")) +
-  geom_smooth(aes(x = RCT_BB, y = DO_mg_L, color = "Site 18.6")) +
-  geom_smooth(aes(x = RCT_HT, y = DO_mg_L, color = "Site 18.8")) +
+  geom_smooth(aes(x = RCT_RR, y = DO_Impacted_mg_L, color = "Site 18.5")) +
+  geom_smooth(aes(x = RCT_BB, y = DO_Impacted_mg_L, color = "Site 18.6")) +
+  geom_smooth(aes(x = RCT_HT, y = DO_Impacted_mg_L, color = "Site 18.8")) +
   scale_x_reverse() +
   labs(color = "Study Site") +
   xlab("Riffle Crest Thalweg (RCT) Depth in cm") +
@@ -1351,7 +1351,7 @@ RCT_DO_Graph
 
 WaterTemp_PorterCreek <- 
   ggplot(Hydrology_Dataset) +
-  geom_line(aes(x = Date, y = WaterTemp_C))
+  geom_smooth(aes(x = Date, y = WaterTemp_C))
 WaterTemp_PorterCreek
 ```
 
