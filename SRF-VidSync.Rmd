@@ -652,7 +652,8 @@ Forage_Types_Plot <-
   ggtitle("Number and Proportion of Forage Mode Types") +
   scale_fill_manual(values = c("black", "darkblue", "goldenrod")) +
   guides(fill=guide_legend(title="Foraging Modes")) +
-  theme(legend.title = element_text(size = 12, face = "bold"), plot.title = element_text(size = 18, face = "bold", hjust = 0.5), axis.title.x = element_text(size = 12, face = "bold"), axis.title.y = element_text(size = 12, face = "bold"))
+  theme(legend.title = element_text(size = 12, face = "bold"), plot.title = element_text(size = 18, face = "bold", hjust = 0.5), axis.title.x = element_text(size = 12, face = "bold"), axis.title.y = element_text(size = 12, face = "bold")) +
+  theme_bw()
 Forage_Types_Plot
 
 Normalized_Forage_Types_Plot <- 
@@ -1346,7 +1347,8 @@ RCT_DO_Graph <-
   xlab("Riffle Crest Thalweg (RCT) Depth in cm") +
   ylab("Dissolve Oxygen (mg/L)") +
   ggtitle("Effect of Upstream RCT Depth on Dissolved Oxygen Content") +
-  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold"))
+  theme(plot.title = element_text(hjust = 0.5, size = 16, face = "bold")) +
+  theme_bw()
 RCT_DO_Graph
 
 WaterTemp_PorterCreek <- 
