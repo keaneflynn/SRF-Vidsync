@@ -901,7 +901,7 @@ Forage_Types_Plot <-
   facet_grid(.~sample_event1) +
   xlab("Site") +
   ylab("Number of Forage Events") +
-  ggtitle("Number and Proportion of Forage Mode Types") +
+  ggtitle("Number and Proportion of Forage Modes") +
   scale_fill_manual(values = c("black", "darkblue", "goldenrod")) +
   guides(fill=guide_legend(title="Foraging Modes")) +
   theme_bw() +
