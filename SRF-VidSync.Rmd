@@ -1282,7 +1282,7 @@ DO_Dataset_Impacted <-
   group_by(Date) %>% 
   na.omit() %>% 
   summarize(DO_Impacted_mg_L = mean(DO_mg_L))
-DO_Dataset_Impacted$Date <- base::as.Date(DO_Dataset$Date, "%m/%d/%Y")
+DO_Dataset_Impacted$Date <- base::as.Date(DO_Dataset_Impacted$Date, "%m/%d/%Y")
 
 DO_Dataset_Control <- 
   read_csv(file = "Hydrology-Data/Porter_POFW_DO_Data.csv") %>% 
@@ -1291,7 +1291,7 @@ DO_Dataset_Control <-
   group_by(Date) %>% 
   na.omit() %>% 
   summarize(DO_Control_mg_L = mean(DO_mg_L))
-DO_Dataset_Control$Date <- base::as.Date(DO_Dataset$Date, "%m/%d/%Y") 
+DO_Dataset_Control$Date <- base::as.Date(DO_Dataset_Control$Date, "%m/%d/%Y") 
 
 Hydrology_Dataset <- RCT_Dataset %>% 
   left_join(Flow_Dataset, by = c("SampleDate" = "Date")) %>% 
