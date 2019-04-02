@@ -904,8 +904,8 @@ Forage_Types_Plot <-
   ggtitle("Number and Proportion of Forage Mode Types") +
   scale_fill_manual(values = c("black", "darkblue", "goldenrod")) +
   guides(fill=guide_legend(title="Foraging Modes")) +
-  theme(legend.title = element_text(size = 12, face = "bold"), plot.title = element_text(size = 18, face = "bold", hjust = 0.5), axis.title.x = element_text(size = 12, face = "bold"), axis.title.y = element_text(size = 12, face = "bold")) +
-  theme_bw()
+  theme_bw() +
+  theme(legend.title = element_text(size = 12, face = "bold"), plot.title = element_text(size = 18, face = "bold", hjust = 0.5), axis.title.x = element_text(size = 12, face = "bold"), axis.title.y = element_text(size = 12, face = "bold"), axis.text.x = element_text(colour = c("black", "black", "red", "red", "black", "black", "red", "red")))
 Forage_Types_Plot
 ```
 
