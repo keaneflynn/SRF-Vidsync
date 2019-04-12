@@ -29,13 +29,13 @@ library(readr)
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.2.1 ──
+    ## ── Attaching packages ──────────────────────────────────────────────────────────────────────────────── tidyverse 1.2.1 ──
 
     ## ✔ ggplot2 3.0.0     ✔ purrr   0.2.5
     ## ✔ tibble  1.4.2     ✔ stringr 1.3.1
     ## ✔ tidyr   0.8.1     ✔ forcats 0.3.0
 
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ── Conflicts ─────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
 
@@ -968,33 +968,96 @@ Fish_Dataset <- Behavior_Types_Dataset %>%
   left_join(MovementPerTime_Data, by = c("date", "BACI_date", "site", "sample_event", "species", "subsample", "index")) %>% 
   left_join(nnd_data, by = c("date", "BACI_date", "site", "sample_event", "subsample", "index")) %>% 
   select(date, BACI_date, sample_event, site, species, subsample, index, time, Behaviors, max_time_tally, DistPerTime_Median, DistPerTime_Mean, mean_nnd, median_nnd, fish_length_mm, num_fish_in_subsample, volume_occupied_all_cm3, volume_occupied_forage_cm3, points_in_sample, repeat_index) %>% 
-  arrange(BACI_date, sample_event, site, subsample, index, time)
+  arrange(BACI_date, sample_event, site, subsample, index, time) %>% 
+  group_by(sample_event, site, subsample) %>% 
+  mutate(Total_Volume_Occupied = sum(base::unique(volume_occupied_all_cm3), na.rm = TRUE)) %>% 
+  mutate(Total_Forage_Volume_Occupied = sum(base::unique(volume_occupied_forage_cm3), na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  group_by(sample_event, site) %>% 
+  mutate(Mean_Total_Volume_Occupied_cm3 = mean(base::unique(Total_Volume_Occupied))) %>% 
+  mutate(Mean_Total_Forage_Volume_Occupied_cm3 = mean(base::unique(Total_Forage_Volume_Occupied))) %>%
+  select(date, BACI_date, sample_event, site, species, subsample, index, num_fish_in_subsample, time, Behaviors, max_time_tally, DistPerTime_Median, DistPerTime_Mean, mean_nnd, median_nnd, fish_length_mm, volume_occupied_all_cm3, volume_occupied_forage_cm3, Mean_Total_Volume_Occupied_cm3, Mean_Total_Forage_Volume_Occupied_cm3, points_in_sample, repeat_index)
 Fish_Dataset
 ```
 
-    ## # A tibble: 1,205 x 20
+    ## # A tibble: 1,205 x 22
     ## # Groups:   sample_event, site [8]
-    ##    date       BACI_date  sample_event site  species subsample index  time
-    ##    <date>     <date>     <chr>        <chr> <chr>       <dbl> <dbl> <dbl>
-    ##  1 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  510.
-    ##  2 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  513.
-    ##  3 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  516.
-    ##  4 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  519.
-    ##  5 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  522.
-    ##  6 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  534.
-    ##  7 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  537.
-    ##  8 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5  528.
-    ##  9 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5  531.
-    ## 10 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5  534.
-    ## # ... with 1,195 more rows, and 12 more variables: Behaviors <chr>,
+    ##    date       BACI_date  sample_event site  species subsample index
+    ##    <date>     <date>     <chr>        <chr> <chr>       <dbl> <dbl>
+    ##  1 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1
+    ##  2 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1
+    ##  3 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1
+    ##  4 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1
+    ##  5 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1
+    ##  6 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1
+    ##  7 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1
+    ##  8 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5
+    ##  9 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5
+    ## 10 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5
+    ## # ... with 1,195 more rows, and 15 more variables:
+    ## #   num_fish_in_subsample <dbl>, time <dbl>, Behaviors <chr>,
     ## #   max_time_tally <dbl>, DistPerTime_Median <dbl>,
     ## #   DistPerTime_Mean <dbl>, mean_nnd <dbl>, median_nnd <dbl>,
-    ## #   fish_length_mm <dbl>, num_fish_in_subsample <dbl>,
-    ## #   volume_occupied_all_cm3 <dbl>, volume_occupied_forage_cm3 <dbl>,
-    ## #   points_in_sample <dbl>, repeat_index <dbl>
+    ## #   fish_length_mm <dbl>, volume_occupied_all_cm3 <dbl>,
+    ## #   volume_occupied_forage_cm3 <dbl>,
+    ## #   Mean_Total_Volume_Occupied_cm3 <dbl>,
+    ## #   Mean_Total_Forage_Volume_Occupied_cm3 <dbl>, points_in_sample <dbl>,
+    ## #   repeat_index <dbl>
+
+### Fish Graphs
+
+#### Total Volume Graph
 
 ``` r
-write_csv(x = Fish_Dataset, path = "SRF_Fish.csv")
+Mean_Total_Volume_Dataset <- Fish_Dataset %>% 
+  select(sample_event, site, Mean_Total_Volume_Occupied_cm3, Mean_Total_Forage_Volume_Occupied_cm3, num_fish_in_subsample) %>% 
+  distinct(Total_Volume_Occupied, .keep_all = TRUE)
+```
+
+    ## Warning: Trying to compute distinct() for variables not found in the data:
+    ## - `Total_Volume_Occupied`
+    ## This is an error, but only a warning is raised for compatibility reasons.
+    ## The operation will return the input unchanged.
+
+``` r
+Mean_Total_Volume_Dataset$sample_event <- factor(Mean_Total_Volume_Dataset$sample_event, levels = c("Before", "After"))
+  
+Total_Volume_Plot <- 
+  ggplot(Mean_Total_Volume_Dataset) +
+  geom_bar(aes(x = site, y = Mean_Total_Volume_Occupied_cm3, fill = sample_event, width = 0.5), position = position_dodge(), stat = "identity") +
+  theme_bw() +
+  guides(fill=guide_legend(title = "Augmentation\nPeriod")) +
+  scale_fill_manual(values = c("goldenrod", "darkblue")) +
+  xlab("Site") +
+  ylab("Volume Occupied (cm^3)") +
+  ggtitle("Total Volume Occupied by Present Salmonids in Pool Head Patch") +
+  theme(axis.title.x = element_text(face = "bold", size = 14), axis.title.y = element_text(face = "bold", size = 14), legend.title = element_text(face = "plain", size = 14), plot.title = element_text(face = "bold", size = 16, hjust = 0.25), axis.text.x = element_text(colour = c("black", "black", "red", "red")))
+```
+
+    ## Warning: Ignoring unknown aesthetics: width
+
+``` r
+Total_Volume_Plot
+```
+
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-13-1.png)
+
+#### NND Graph
+
+``` r
+NND_Graph_Dataset <- Fish_Dataset %>% 
+  select(sample_event, site, subsample, mean_nnd, median_nnd) %>% 
+  distinct(mean_nnd, .keep_all = TRUE) %>% 
+  na.omit() %>% 
+  group_by(sample_event, site) %>% 
+  mutate(mean_nnd = base::mean(mean_nnd)) %>% 
+  mutate(median_nnd = base::mean(median_nnd)) %>% 
+  select(sample_event, site, mean_nnd, median_nnd) %>% 
+  distinct(.keep_all = TRUE)
+
+NND_Graph <- 
+  ggplot(NND_Graph_Dataset) + 
+  geom_bar(aes(x = site, y = median_nnd, fill = sample_event), position = position_dodge() ,stat = "identity")
 ```
 
 ### Volume Dataset Calculations
@@ -1754,7 +1817,7 @@ Natural_PorterCreek_Hydrograph <-
 Natural_PorterCreek_Hydrograph
 ```
 
-![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-18-1.png)
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-20-1.png)
 
 ``` r
 PorterCreek_Augmentation <- 
@@ -1767,7 +1830,7 @@ PorterCreek_Augmentation <-
 PorterCreek_Augmentation
 ```
 
-![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-18-2.png)
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-20-2.png)
 
 ``` r
 Augmented_PorterCreek_Hydrograph <- 
@@ -1780,7 +1843,7 @@ Augmented_PorterCreek_Hydrograph <-
 Augmented_PorterCreek_Hydrograph
 ```
 
-![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-18-3.png)
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-20-3.png)
 
 ``` r
 RCT_DO_Graph <- 
@@ -1802,18 +1865,16 @@ RCT_DO_Graph
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
 
-![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-18-4.png)
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-20-4.png)
 
 ``` r
 WaterTemp_PorterCreek <- 
   ggplot(Hydrology_Dataset) +
-  geom_smooth(aes(x = Date, y = WaterTemp_C))
+  geom_line(aes(x = Date, y = WaterTemp_C))
 WaterTemp_PorterCreek
 ```
 
-    ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
-
-![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-18-5.png)
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-20-5.png)
 
 Final SRF Dataset
 =================
@@ -1824,26 +1885,29 @@ Final_SRF_Dataset <- Fish_Dataset %>%
 Final_SRF_Dataset
 ```
 
-    ## # A tibble: 1,205 x 30
+    ## # A tibble: 1,205 x 32
     ## # Groups:   sample_event, site [?]
-    ##    date       BACI_date  sample_event site  species subsample index  time
-    ##    <date>     <date>     <chr>        <chr> <chr>       <dbl> <dbl> <dbl>
-    ##  1 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  510.
-    ##  2 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  513.
-    ##  3 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  516.
-    ##  4 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  519.
-    ##  5 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  522.
-    ##  6 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  534.
-    ##  7 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1  537.
-    ##  8 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5  528.
-    ##  9 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5  531.
-    ## 10 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5  534.
-    ## # ... with 1,195 more rows, and 22 more variables: Behaviors <chr>,
+    ##    date       BACI_date  sample_event site  species subsample index
+    ##    <date>     <date>     <chr>        <chr> <chr>       <dbl> <dbl>
+    ##  1 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1
+    ##  2 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1
+    ##  3 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1
+    ##  4 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1
+    ##  5 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1
+    ##  6 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1
+    ##  7 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     1
+    ##  8 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5
+    ##  9 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5
+    ## 10 2018-06-30 2018-06-29 Before       18.2  Omykiss         1     5
+    ## # ... with 1,195 more rows, and 25 more variables:
+    ## #   num_fish_in_subsample <dbl>, time <dbl>, Behaviors <chr>,
     ## #   max_time_tally <dbl>, DistPerTime_Median <dbl>,
     ## #   DistPerTime_Mean <dbl>, mean_nnd <dbl>, median_nnd <dbl>,
-    ## #   fish_length_mm <dbl>, num_fish_in_subsample <dbl>,
-    ## #   volume_occupied_all_cm3 <dbl>, volume_occupied_forage_cm3 <dbl>,
-    ## #   points_in_sample <dbl>, repeat_index <dbl>, RCT_RR <dbl>,
-    ## #   RCT_BB <dbl>, RCT_HT <dbl>, Streamflow_cfs <dbl>,
-    ## #   Streamflow_gpm <dbl>, WaterTemp_C <dbl>, Augmentation_gpm <dbl>,
-    ## #   DO_Control_mg_L <dbl>, DO_Impacted_mg_L <dbl>, Augmentation_cfs <dbl>
+    ## #   fish_length_mm <dbl>, volume_occupied_all_cm3 <dbl>,
+    ## #   volume_occupied_forage_cm3 <dbl>,
+    ## #   Mean_Total_Volume_Occupied_cm3 <dbl>,
+    ## #   Mean_Total_Forage_Volume_Occupied_cm3 <dbl>, points_in_sample <dbl>,
+    ## #   repeat_index <dbl>, RCT_RR <dbl>, RCT_BB <dbl>, RCT_HT <dbl>,
+    ## #   Streamflow_cfs <dbl>, Streamflow_gpm <dbl>, WaterTemp_C <dbl>,
+    ## #   Augmentation_gpm <dbl>, DO_Control_mg_L <dbl>, DO_Impacted_mg_L <dbl>,
+    ## #   Augmentation_cfs <dbl>

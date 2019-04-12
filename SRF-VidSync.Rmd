@@ -688,10 +688,82 @@ Fish_Dataset <- Behavior_Types_Dataset %>%
   left_join(MovementPerTime_Data, by = c("date", "BACI_date", "site", "sample_event", "species", "subsample", "index")) %>% 
   left_join(nnd_data, by = c("date", "BACI_date", "site", "sample_event", "subsample", "index")) %>% 
   select(date, BACI_date, sample_event, site, species, subsample, index, time, Behaviors, max_time_tally, DistPerTime_Median, DistPerTime_Mean, mean_nnd, median_nnd, fish_length_mm, num_fish_in_subsample, volume_occupied_all_cm3, volume_occupied_forage_cm3, points_in_sample, repeat_index) %>% 
-  arrange(BACI_date, sample_event, site, subsample, index, time)
+  arrange(BACI_date, sample_event, site, subsample, index, time) %>% 
+  group_by(sample_event, site, subsample) %>% 
+  mutate(Total_Volume_Occupied = sum(base::unique(volume_occupied_all_cm3), na.rm = TRUE)) %>% 
+  mutate(Total_Forage_Volume_Occupied = sum(base::unique(volume_occupied_forage_cm3), na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  group_by(sample_event, site) %>% 
+  mutate(Mean_Total_Volume_Occupied_cm3 = mean(base::unique(Total_Volume_Occupied))) %>% 
+  mutate(Mean_Total_Forage_Volume_Occupied_cm3 = mean(base::unique(Total_Forage_Volume_Occupied))) %>%
+  select(date, BACI_date, sample_event, site, species, subsample, index, num_fish_in_subsample, time, Behaviors, max_time_tally, DistPerTime_Median, DistPerTime_Mean, mean_nnd, median_nnd, fish_length_mm, volume_occupied_all_cm3, volume_occupied_forage_cm3, Mean_Total_Volume_Occupied_cm3, Mean_Total_Forage_Volume_Occupied_cm3, points_in_sample, repeat_index)
 Fish_Dataset
+```
 
-write_csv(x = Fish_Dataset, path = "SRF_Fish.csv")
+###Fish Graphs
+
+####Total Volume Graph
+```{r}
+Mean_Total_Volume_Dataset <- Fish_Dataset %>% 
+  select(sample_event, site, subsample, index, volume_occupied_all_cm3) %>%
+  distinct(index, .keep_all = TRUE) %>% 
+  na.omit() %>% 
+  group_by(sample_event, site, subsample) %>% 
+  mutate(avg_volume_subsample = mean(volume_occupied_all_cm3)) %>% 
+  ungroup() %>% 
+  group_by(sample_event, site) %>% 
+  mutate(avg_volume_sample = mean(volume_occupied_all_cm3)) %>% 
+  mutate(total_volume_sample = sum(volume_occupied_all_cm3))
+Mean_Total_Volume_Dataset
+  
+
+Mean_Total_Volume_Dataset$sample_event <- factor(Mean_Total_Volume_Dataset$sample_event, levels = c("Before", "After"))
+  
+Total_Volume_Plot <- 
+  ggplot(Mean_Total_Volume_Dataset) +
+  stat_summary(aes(x = site, y = total_volume_sample, fill = sample_event, width = 0.5), geom = "bar", fun.y = mean, position = "dodge") +
+  stat_summary(aes(x = site, y = avg_volume_subsample, fill = sample_event, width = 0.5), geom = "errorbar", fun.data = mean_se, position = "dodge") +
+  theme_bw() +
+  guides(fill=guide_legend(title = "Augmentation\nPeriod")) +
+  scale_fill_manual(values = c("goldenrod", "darkblue")) +
+  xlab("Site") +
+  ylab("Volume Occupied (cm^3)") +
+  ggtitle("Total Volume Occupied by Salmonids in Pool Head") +
+  theme(axis.title.x = element_text(face = "bold", size = 14), axis.title.y = element_text(face = "bold", size = 14), legend.title = element_text(face = "plain", size = 14), plot.title = element_text(face = "bold", size = 16, hjust = 0.25), axis.text.x = element_text(colour = c("black", "black", "red", "red"))) 
+Total_Volume_Plot
+```
+
+####NND Graph
+```{r}
+NND_Graph_Dataset <- Fish_Dataset %>% 
+  select(sample_event, site, subsample, mean_nnd, median_nnd) %>% 
+  distinct(mean_nnd, .keep_all = TRUE) %>% 
+  na.omit() %>% 
+  group_by(sample_event, site) #%>% 
+  #mutate(mean_nnd = base::mean(mean_nnd)) %>% 
+  #mutate(median_nnd = base::mean(median_nnd)) %>% 
+  #select(sample_event, site, mean_nnd, median_nnd) %>% 
+  #distinct(.keep_all = TRUE)
+
+NND_Graph_Dataset$sample_event <- factor(NND_Graph_Dataset$sample_event, levels = c("Before", "After"))
+
+NND_Graph <- 
+  ggplot(NND_Graph_Dataset, aes(x = site, y = median_nnd, fill = sample_event), position = position_dodge(), stat = "identity") + 
+  geom_boxplot(outlier.colour = "black", outlier.shape = 16, outlier.size = FALSE) + 
+  theme_bw() +
+  guides(fill=guide_legend(title = "Sample Event")) +
+  xlab("Site") +
+  ylab("Distance (cm)") +
+  ggtitle("Nearest Neighbor Distance (NND)") +
+  scale_color_manual(values = "white") +
+  scale_fill_manual(values = c("goldenrod", "darkblue")) +
+  theme(axis.title.x = element_text(face = "bold", size = 15), axis.text.x = element_text(colour = c("black", "black", "red", "red")), plot.title = element_text(face = "bold", size = 20, hjust = 0.5), axis.title.y = element_text(face = "bold", size = 15))
+NND_Graph
+```
+
+####Distance Per Time Graph
+```{r}
+
 ```
 
 ###Volume Dataset Calculations
@@ -1353,7 +1425,7 @@ RCT_DO_Graph
 
 WaterTemp_PorterCreek <- 
   ggplot(Hydrology_Dataset) +
-  geom_smooth(aes(x = Date, y = WaterTemp_C))
+  geom_line(aes(x = Date, y = WaterTemp_C))
 WaterTemp_PorterCreek
 ```
 
