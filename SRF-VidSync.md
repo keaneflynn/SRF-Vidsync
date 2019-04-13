@@ -41,6 +41,7 @@ library(tidyverse)
 
 ``` r
 library(ggplot2)
+
 library(lubridate)
 ```
 
@@ -901,11 +902,11 @@ Forage_Types_Plot <-
   facet_grid(.~sample_event1) +
   xlab("Site") +
   ylab("Number of Forage Events") +
-  ggtitle("Number and Proportion of Forage Modes") +
+  ggtitle("Number of Forage Modes and Behavioral Composition") +
   scale_fill_manual(values = c("black", "darkblue", "goldenrod")) +
   guides(fill=guide_legend(title="Foraging Modes")) +
   theme_bw() +
-  theme(legend.title = element_text(size = 12, face = "bold"), plot.title = element_text(size = 18, face = "bold", hjust = 0.5), axis.title.x = element_text(size = 12, face = "bold"), axis.title.y = element_text(size = 12, face = "bold"), axis.text.x = element_text(colour = c("black", "black", "red", "red", "black", "black", "red", "red")))
+  theme(legend.title = element_text(size = 12, face = "bold"), plot.title = element_text(size = 16, face = "bold", hjust = 0.5), axis.title.x = element_text(size = 12, face = "bold"), axis.title.y = element_text(size = 12, face = "bold"), axis.text.x = element_text(colour = c("black", "black", "red", "red", "black", "black", "red", "red")))
 Forage_Types_Plot
 ```
 
@@ -1010,29 +1011,53 @@ Fish_Dataset
 
 ``` r
 Mean_Total_Volume_Dataset <- Fish_Dataset %>% 
-  select(sample_event, site, Mean_Total_Volume_Occupied_cm3, Mean_Total_Forage_Volume_Occupied_cm3, num_fish_in_subsample) %>% 
-  distinct(Total_Volume_Occupied, .keep_all = TRUE)
+  select(sample_event, site, subsample, index, volume_occupied_all_cm3) %>%
+  distinct(index, .keep_all = TRUE) %>% 
+  na.omit() %>% 
+  group_by(sample_event, site, subsample) %>% 
+  mutate(avg_volume_subsample = mean(volume_occupied_all_cm3)) %>% 
+  ungroup() %>% 
+  group_by(sample_event, site) %>% 
+  mutate(avg_volume_sample = mean(volume_occupied_all_cm3)) %>% 
+  mutate(total_volume_sample = sum(avg_volume_subsample)) %>% 
+  mutate(one = 1) %>% 
+  add_tally(one)
+Mean_Total_Volume_Dataset
 ```
 
-    ## Warning: Trying to compute distinct() for variables not found in the data:
-    ## - `Total_Volume_Occupied`
-    ## This is an error, but only a warning is raised for compatibility reasons.
-    ## The operation will return the input unchanged.
+    ## # A tibble: 113 x 10
+    ## # Groups:   sample_event, site [8]
+    ##    sample_event site  subsample index volume_occupied… avg_volume_subs…
+    ##    <chr>        <chr>     <dbl> <dbl>            <dbl>            <dbl>
+    ##  1 Before       18.2          1     1          54.3             54.3   
+    ##  2 Before       18.2          2     3           2.95           104.    
+    ##  3 Before       18.2          2     4         206.             104.    
+    ##  4 Before       18.2          3     8          45.9             43.3   
+    ##  5 Before       18.2          3     9          40.6             43.3   
+    ##  6 Before       18.2          4     7          80.6             43.8   
+    ##  7 Before       18.2          4    11           7.01            43.8   
+    ##  8 Before       18.3          1     1           3.57             1.79  
+    ##  9 Before       18.3          1     2           0.0054           1.79  
+    ## 10 Before       18.3          2     4           0.0106           0.0106
+    ## # ... with 103 more rows, and 4 more variables: avg_volume_sample <dbl>,
+    ## #   total_volume_sample <dbl>, one <dbl>, n <dbl>
 
 ``` r
 Mean_Total_Volume_Dataset$sample_event <- factor(Mean_Total_Volume_Dataset$sample_event, levels = c("Before", "After"))
   
 Total_Volume_Plot <- 
   ggplot(Mean_Total_Volume_Dataset) +
-  geom_bar(aes(x = site, y = Mean_Total_Volume_Occupied_cm3, fill = sample_event, width = 0.5), position = position_dodge(), stat = "identity") +
+  geom_col(aes(x = site, y = sum(volume_occupied_all_cm3), fill = sample_event, width = 0.5), stat = "identity", position = position_dodge()) +
   theme_bw() +
   guides(fill=guide_legend(title = "Augmentation\nPeriod")) +
   scale_fill_manual(values = c("goldenrod", "darkblue")) +
   xlab("Site") +
   ylab("Volume Occupied (cm^3)") +
-  ggtitle("Total Volume Occupied by Present Salmonids in Pool Head Patch") +
+  ggtitle("Total Volume Occupied by Salmonids in Pool Head") +
   theme(axis.title.x = element_text(face = "bold", size = 14), axis.title.y = element_text(face = "bold", size = 14), legend.title = element_text(face = "plain", size = 14), plot.title = element_text(face = "bold", size = 16, hjust = 0.25), axis.text.x = element_text(colour = c("black", "black", "red", "red")))
 ```
+
+    ## Warning: Ignoring unknown parameters: stat
 
     ## Warning: Ignoring unknown aesthetics: width
 
@@ -1049,16 +1074,31 @@ NND_Graph_Dataset <- Fish_Dataset %>%
   select(sample_event, site, subsample, mean_nnd, median_nnd) %>% 
   distinct(mean_nnd, .keep_all = TRUE) %>% 
   na.omit() %>% 
-  group_by(sample_event, site) %>% 
-  mutate(mean_nnd = base::mean(mean_nnd)) %>% 
-  mutate(median_nnd = base::mean(median_nnd)) %>% 
-  select(sample_event, site, mean_nnd, median_nnd) %>% 
-  distinct(.keep_all = TRUE)
+  group_by(sample_event, site) #%>% 
+  #mutate(mean_nnd = base::mean(mean_nnd)) %>% 
+  #mutate(median_nnd = base::mean(median_nnd)) %>% 
+  #select(sample_event, site, mean_nnd, median_nnd) %>% 
+  #distinct(.keep_all = TRUE)
+
+NND_Graph_Dataset$sample_event <- factor(NND_Graph_Dataset$sample_event, levels = c("Before", "After"))
 
 NND_Graph <- 
-  ggplot(NND_Graph_Dataset) + 
-  geom_bar(aes(x = site, y = median_nnd, fill = sample_event), position = position_dodge() ,stat = "identity")
+  ggplot(NND_Graph_Dataset, aes(x = site, y = median_nnd, fill = sample_event), position = position_dodge(), stat = "identity") + 
+  geom_boxplot(outlier.colour = "black", outlier.shape = 16, outlier.size = FALSE) + 
+  theme_bw() +
+  guides(fill=guide_legend(title = "Sample Event")) +
+  xlab("Site") +
+  ylab("Distance (cm)") +
+  ggtitle("Nearest Neighbor Distance (NND)") +
+  scale_color_manual(values = "white") +
+  scale_fill_manual(values = c("goldenrod", "darkblue")) +
+  theme(axis.title.x = element_text(face = "bold", size = 15), axis.text.x = element_text(colour = c("black", "black", "red", "red")), plot.title = element_text(face = "bold", size = 20, hjust = 0.5), axis.title.y = element_text(face = "bold", size = 15))
+NND_Graph
 ```
+
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-14-1.png)
+
+#### Distance Per Time Graph
 
 ### Volume Dataset Calculations
 
@@ -1817,7 +1857,7 @@ Natural_PorterCreek_Hydrograph <-
 Natural_PorterCreek_Hydrograph
 ```
 
-![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-20-1.png)
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-21-1.png)
 
 ``` r
 PorterCreek_Augmentation <- 
@@ -1830,7 +1870,7 @@ PorterCreek_Augmentation <-
 PorterCreek_Augmentation
 ```
 
-![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-20-2.png)
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-21-2.png)
 
 ``` r
 Augmented_PorterCreek_Hydrograph <- 
@@ -1843,7 +1883,7 @@ Augmented_PorterCreek_Hydrograph <-
 Augmented_PorterCreek_Hydrograph
 ```
 
-![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-20-3.png)
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-21-3.png)
 
 ``` r
 RCT_DO_Graph <- 
@@ -1865,7 +1905,7 @@ RCT_DO_Graph
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
     ## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
 
-![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-20-4.png)
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-21-4.png)
 
 ``` r
 WaterTemp_PorterCreek <- 
@@ -1874,7 +1914,7 @@ WaterTemp_PorterCreek <-
 WaterTemp_PorterCreek
 ```
 
-![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-20-5.png)
+![](SRF-VidSync_files/figure-markdown_github/unnamed-chunk-21-5.png)
 
 Final SRF Dataset
 =================

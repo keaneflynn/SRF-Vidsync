@@ -16,6 +16,7 @@ library(dplyr)
 library(readr)
 library(tidyverse)
 library(ggplot2)
+
 library(lubridate)
 library(geometry)
 library(rgl)
@@ -649,11 +650,11 @@ Forage_Types_Plot <-
   facet_grid(.~sample_event1) +
   xlab("Site") +
   ylab("Number of Forage Events") +
-  ggtitle("Number and Proportion of Forage Modes") +
+  ggtitle("Number of Forage Modes and Behavioral Composition") +
   scale_fill_manual(values = c("black", "darkblue", "goldenrod")) +
   guides(fill=guide_legend(title="Foraging Modes")) +
   theme_bw() +
-  theme(legend.title = element_text(size = 12, face = "bold"), plot.title = element_text(size = 18, face = "bold", hjust = 0.5), axis.title.x = element_text(size = 12, face = "bold"), axis.title.y = element_text(size = 12, face = "bold"), axis.text.x = element_text(colour = c("black", "black", "red", "red", "black", "black", "red", "red")))
+  theme(legend.title = element_text(size = 12, face = "bold"), plot.title = element_text(size = 16, face = "bold", hjust = 0.5), axis.title.x = element_text(size = 12, face = "bold"), axis.title.y = element_text(size = 12, face = "bold"), axis.text.x = element_text(colour = c("black", "black", "red", "red", "black", "black", "red", "red")))
 Forage_Types_Plot
 
 Normalized_Forage_Types_Plot <- 
@@ -713,7 +714,9 @@ Mean_Total_Volume_Dataset <- Fish_Dataset %>%
   ungroup() %>% 
   group_by(sample_event, site) %>% 
   mutate(avg_volume_sample = mean(volume_occupied_all_cm3)) %>% 
-  mutate(total_volume_sample = sum(volume_occupied_all_cm3))
+  mutate(total_volume_sample = sum(avg_volume_subsample)) %>% 
+  mutate(one = 1) %>% 
+  add_tally(one)
 Mean_Total_Volume_Dataset
   
 
@@ -721,15 +724,14 @@ Mean_Total_Volume_Dataset$sample_event <- factor(Mean_Total_Volume_Dataset$sampl
   
 Total_Volume_Plot <- 
   ggplot(Mean_Total_Volume_Dataset) +
-  stat_summary(aes(x = site, y = total_volume_sample, fill = sample_event, width = 0.5), geom = "bar", fun.y = mean, position = "dodge") +
-  stat_summary(aes(x = site, y = avg_volume_subsample, fill = sample_event, width = 0.5), geom = "errorbar", fun.data = mean_se, position = "dodge") +
+  geom_col(aes(x = site, y = sum(volume_occupied_all_cm3), fill = sample_event, width = 0.5), stat = "identity", position = position_dodge()) +
   theme_bw() +
   guides(fill=guide_legend(title = "Augmentation\nPeriod")) +
   scale_fill_manual(values = c("goldenrod", "darkblue")) +
   xlab("Site") +
   ylab("Volume Occupied (cm^3)") +
   ggtitle("Total Volume Occupied by Salmonids in Pool Head") +
-  theme(axis.title.x = element_text(face = "bold", size = 14), axis.title.y = element_text(face = "bold", size = 14), legend.title = element_text(face = "plain", size = 14), plot.title = element_text(face = "bold", size = 16, hjust = 0.25), axis.text.x = element_text(colour = c("black", "black", "red", "red"))) 
+  theme(axis.title.x = element_text(face = "bold", size = 14), axis.title.y = element_text(face = "bold", size = 14), legend.title = element_text(face = "plain", size = 14), plot.title = element_text(face = "bold", size = 16, hjust = 0.25), axis.text.x = element_text(colour = c("black", "black", "red", "red")))
 Total_Volume_Plot
 ```
 
